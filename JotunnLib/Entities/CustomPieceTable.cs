@@ -49,7 +49,7 @@ namespace Jotunn.Entities
         {
             PieceTablePrefab = pieceTablePrefab;
             PieceTable = pieceTablePrefab.GetComponent<PieceTable>();
-            if (PieceTable != null && PieceTable.m_useCategories)
+            if (PieceTable != null)
             {
                 List<string> categories = new List<string>();
                 for (int i = 0; i < PieceUtils.VanillaMaxPieceCategory; i++)
