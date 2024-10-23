@@ -73,9 +73,6 @@ namespace Jotunn.Configs
                 return;
             }
 
-            // Use categories at all?
-            table.m_useCategories = UseCategories || UseCustomCategories;
-
             // Can remove pieces?
             table.m_canRemovePieces = CanRemovePieces;
         }

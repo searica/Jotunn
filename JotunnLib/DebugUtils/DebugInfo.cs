@@ -201,7 +201,7 @@ namespace Jotunn.DebugUtils
 
             _zoneAltitudeValue.text = $"<color=#ffe082>{altitude:0}</color>";
 
-            Vector2i sector = ZoneSystem.instance.GetZone(position);
+            Vector2i sector = ZoneSystem.GetZone(position);
 
             _zoneSectorValue.text = $"<color=#ffe082>{sector.x}</color>, <color=#a5d6a7>{sector.y}</color>";
 
