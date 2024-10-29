@@ -53,6 +53,7 @@ namespace Jotunn.Managers
 
         private readonly Dictionary<string, Piece.PieceCategory> PieceCategories = new Dictionary<string, Piece.PieceCategory>();
         private readonly Dictionary<string, Piece.PieceCategory> OtherPieceCategories = new Dictionary<string, Piece.PieceCategory>();
+        private readonly Dictionary<Piece.PieceCategory, string> vanillaLabels = new Dictionary<Piece.PieceCategory, string>();
         private static bool categoryRefreshNeeded = false;
         private static string hiddenCategoryMagic = "(HiddenCategory)";
 
@@ -869,7 +870,10 @@ namespace Jotunn.Managers
             RectTransform categoryRoot = (RectTransform)Hud.instance.m_pieceCategoryRoot.transform;
             RectTransform selectionWindow = (RectTransform)Hud.instance.m_pieceSelectionWindow.transform;
 
-            firstTab.parent.GetComponent<HorizontalLayoutGroup>().enabled = false;
+            if (firstTab.parent.TryGetComponent<HorizontalLayoutGroup>(out var layoutGroup))
+            {
+                layoutGroup.enabled = false;
+            }
 
             const int verticalSpacing = 1;
             Vector2 tabSize = firstTab.rect.size;
@@ -915,6 +919,24 @@ namespace Jotunn.Managers
 
         private void UpdatePieceTableCategories(PieceTable pieceTable, HashSet<Piece.PieceCategory> visibleCategories)
         {
+            for (int i = 0; i < PieceUtils.VanillaMaxPieceCategory; i++)
+            {
+                Piece.PieceCategory category = (Piece.PieceCategory)i;
+
+                if (visibleCategories.Contains(category) && !pieceTable.m_categories.Contains(category))
+                {
+                    pieceTable.m_categories.Add(category);
+                    pieceTable.m_categoryLabels.Add(GetVanillaLabel(category));
+                }
+
+                if (!visibleCategories.Contains(category) && pieceTable.m_categories.Contains(category))
+                {
+                    int index = pieceTable.m_categories.IndexOf(category);
+                    pieceTable.m_categories.RemoveAt(index);
+                    pieceTable.m_categoryLabels.RemoveAt(index);
+                }
+            }
+
             foreach (var entry in PieceCategories)
             {
                 string name = entry.Key;
@@ -931,6 +953,32 @@ namespace Jotunn.Managers
                     int index = pieceTable.m_categories.IndexOf(category);
                     pieceTable.m_categories.RemoveAt(index);
                     pieceTable.m_categoryLabels.RemoveAt(index);
+                }
+            }
+        }
+
+        private string GetVanillaLabel(Piece.PieceCategory category)
+        {
+            if (!vanillaLabels.ContainsKey(category))
+            {
+                SearchVanillaLabels();
+            }
+
+            return vanillaLabels.TryGetValue(category, out string label) ? label : string.Empty;
+        }
+
+        private void SearchVanillaLabels()
+        {
+            foreach (var pieceTable in Resources.FindObjectsOfTypeAll<PieceTable>())
+            {
+                for (var i = 0; i < pieceTable.m_categories.Count; i++)
+                {
+                    var category = pieceTable.m_categories[i];
+
+                    if (i < pieceTable.m_categoryLabels.Count && !vanillaLabels.ContainsKey(category) && !string.IsNullOrEmpty(pieceTable.m_categoryLabels[i]))
+                    {
+                        vanillaLabels[category] = pieceTable.m_categoryLabels[i];
+                    }
                 }
             }
         }
