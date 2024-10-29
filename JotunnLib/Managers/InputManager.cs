@@ -107,13 +107,25 @@ namespace Jotunn.Managers
         }
 
         /// <summary>
-        ///     Translate an axis string to its <see cref="UnityEngine.InputSystem.InputBinding.path">UnityEngine.InputSystem.InputBinding.path</see> value
+        ///     Translate an axis string to its
+        ///     <see cref="UnityEngine.InputSystem.InputBinding.path">UnityEngine.InputSystem.InputBinding.path</see> value
         /// </summary>
         /// <param name="axis"></param>
         /// <returns></returns>
         public static string GetAxisPath(string axis)
         {
             return InputUtils.GetAxisPath(axis);
+        }
+
+        /// <summary>
+        ///     Translate a <see cref="GamepadInput"/> to its
+        ///     <see cref="UnityEngine.InputSystem.InputBinding.path">UnityEngine.InputSystem.InputBinding.path</see> value
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string GetGamepadInputPath(GamepadInput input)
+        {
+            return InputUtils.GetGamepadInputPath(input);
         }
 
         /// <summary>
@@ -294,13 +306,12 @@ namespace Jotunn.Managers
 
                     if (btn.GamepadButton != GamepadButton.None)
                     {
-                        var joyBtnName = $"Joy!{btn.Name}";
                         GamepadInput input = GetGamepadInput(btn.GamepadButton);
 
                         if (input != GamepadInput.None)
                         {
-                            // Input TODO
-                            //self.AddButton(joyBtnName, input, btn.RepeatDelay, btn.RepeatInterval);
+                            var joyBtnName = $"Joy!{btn.Name}";
+                            self.AddButton(joyBtnName, GetGamepadInputPath(input), false, true, true, btn.RepeatDelay, btn.RepeatInterval);
                         }
                     }
 

@@ -185,8 +185,18 @@ namespace Jotunn.Utils
                 GamepadButton.DPadDown => GamepadInput.DPadDown,
                 GamepadButton.DPadLeft => GamepadInput.DPadLeft,
                 GamepadButton.DPadRight => GamepadInput.DPadRight,
+                GamepadButton.ButtonSouth => GamepadInput.FaceButtonA,
+                GamepadButton.ButtonEast => GamepadInput.FaceButtonB,
+                GamepadButton.ButtonWest => GamepadInput.FaceButtonX,
+                GamepadButton.ButtonNorth => GamepadInput.FaceButtonY,   
+                GamepadButton.LeftShoulder => GamepadInput.BumperL,
+                GamepadButton.RightShoulder => GamepadInput.BumperR,
                 GamepadButton.LeftTrigger => GamepadInput.TriggerL,
                 GamepadButton.RightTrigger => GamepadInput.TriggerR,
+                GamepadButton.SelectButton => GamepadInput.Select,
+                GamepadButton.StartButton => GamepadInput.Start,
+                GamepadButton.LeftStickButton => GamepadInput.StickLButton,
+                GamepadButton.RightStickButton => GamepadInput.StickRButton,
                 _ => GamepadInput.None
             };
         }
@@ -274,6 +284,51 @@ namespace Jotunn.Utils
         }
 
         /// <summary>
+        ///     Translate a <see cref="GamepadInput"/> to its
+        ///     <see cref="UnityEngine.InputSystem.InputBinding.path">UnityEngine.InputSystem.InputBinding.path</see> value
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string GetGamepadInputPath(GamepadInput input)
+        {
+            return input switch
+            {
+                GamepadInput.DPadLeft => "<Gamepad>/dpad/left",
+                GamepadInput.DPadRight => "<Gamepad>/dpad/right",
+                GamepadInput.DPadDown => "<Gamepad>/dpad/down",
+                GamepadInput.DPadUp => "<Gamepad>/dpad/up",
+                GamepadInput.FaceButtonA => "<Gamepad>/buttonSouth",
+                GamepadInput.FaceButtonB => "<Gamepad>/buttonEast",
+                GamepadInput.FaceButtonX => "<Gamepad>/buttonWest",
+                GamepadInput.FaceButtonY => "<Gamepad>/buttonNorth",
+                GamepadInput.StickLHorizontal => "<Gamepad>/leftStick/x",
+                GamepadInput.StickLVertical => "<Gamepad>/leftStick/y",
+                GamepadInput.StickLButton => "<Gamepad>/leftStickPress",
+                GamepadInput.StickRHorizontal => "<Gamepad>/rightStick/x",
+                GamepadInput.StickRVertical => "<Gamepad>/rightStick/y",
+                GamepadInput.StickRButton => "<Gamepad>/rightStickPress",
+                GamepadInput.BumperL => "<Gamepad>/leftShoulder",
+                GamepadInput.BumperR => "<Gamepad>/rightShoulder",
+                GamepadInput.TriggerL => "<Gamepad>/leftTrigger",
+                GamepadInput.TriggerR => "<Gamepad>/rightTrigger",
+                GamepadInput.Select => "<Gamepad>/select",
+                GamepadInput.Start => "<Gamepad>/start",
+                GamepadInput.DualShockTouchpad => "<Gamepad>/touchpadButton",
+                GamepadInput.StickRUp => "<Gamepad>/rightStick/up",
+                GamepadInput.StickRDown => "<Gamepad>/rightStick/down",
+                GamepadInput.StickRLeft => "<Gamepad>/rightStick/left",
+                GamepadInput.StickRRight => "<Gamepad>/rightStick/right",
+                GamepadInput.StickLUp => "<Gamepad>/leftStick/up",
+                GamepadInput.StickLDown => "<Gamepad>/leftStick/down",
+                GamepadInput.StickLLeft => "<Gamepad>/leftStick/left",
+                GamepadInput.StickLRight => "<Gamepad>/leftStick/right",
+                GamepadInput.StickR => "<Gamepad>/rightStick",
+                GamepadInput.StickL => "<Gamepad>/leftStick",
+                _ => string.Empty
+            };
+        }
+
+        /// <summary>
         ///     Translates a <see cref="KeyCode"/> to its <see cref="GamepadButton"/> value
         /// </summary>
         public static GamepadButton GetGamepadButton(KeyCode key)
@@ -322,18 +377,16 @@ namespace Jotunn.Utils
 
             if (entry.SettingType == typeof(GamepadButton) && ZInput.instance.m_buttons.TryGetValue($"Joy!{buttonName}", out def))
             {
-                var keyCode = GetGamepadKeyCode((GamepadButton)entry.BoxedValue);
                 var input = GetGamepadInput((GamepadButton)entry.BoxedValue);
+                var keyCode = GetGamepadKeyCode((GamepadButton)entry.BoxedValue);
 
-                // Input TODO
                 if (input != GamepadInput.None)
                 {
-                    // buttonActionBackingField.SetValue(def,
-                    // def.m_gamepadInput = input;
+                    def.Rebind(GetGamepadInputPath(input));
                 }
                 else
                 {
-                    // def.m_key = KeyCodeToKey(ZInput.KeyCodeToPath(keyCode));
+                    def.Rebind(ZInput.KeyCodeToPath(keyCode));
                 }
             }
         }
