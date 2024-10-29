@@ -315,7 +315,8 @@ namespace Jotunn.Managers
                 var gamepadButton = buttonConfig.GamepadButton;
                 if (gamepadButton == GamepadButton.None && ZInput.instance.m_buttons.TryGetValue($"Joy{buttonConfig.Name}", out var buttonDef))
                 {
-                    gamepadButton = GetGamepadButton(buttonDef.m_gamepadInput);
+                    // Input TODO
+                    //gamepadButton = GetGamepadButton(buttonDef.m_gamepadInput);
                 }
 
                 if (gamepadButton != GamepadButton.None)

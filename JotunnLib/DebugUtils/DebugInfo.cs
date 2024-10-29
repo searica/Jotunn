@@ -3,6 +3,7 @@ using System.Linq;
 using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Jotunn.DebugUtils
@@ -186,8 +187,20 @@ namespace Jotunn.DebugUtils
 
         private void UpdateKeys()
         {
-            var key = ZInput.instance.GetPressedKey(); 
-            _keyValue.text = Enum.GetName(typeof(KeyCode), key);
+            _keyValue.text = GetPressedKey();
+        }
+
+        private string GetPressedKey()
+        {
+            foreach (var button in ZInput.instance.m_buttons)
+            {
+                if (ZInput.GetButton(button.Key))
+                {
+                    return button.Value.ButtonAction.GetBindingDisplayString() + " | " + button.Value.Name;
+                }
+            }
+
+            return string.Empty;
         }
 
         private void UpdateZones()

@@ -107,6 +107,16 @@ namespace Jotunn.Managers
         }
 
         /// <summary>
+        ///     Translate an axis string to its <see cref="UnityEngine.InputSystem.InputBinding.path">UnityEngine.InputSystem.InputBinding.path</see> value
+        /// </summary>
+        /// <param name="axis"></param>
+        /// <returns></returns>
+        public static string GetAxisPath(string axis)
+        {
+            return InputUtils.GetAxisPath(axis);
+        }
+
+        /// <summary>
         ///     Translates a <see cref="GamepadButton"/> to its printable string value
         /// </summary>
         public static string GetGamepadString(GamepadButton @enum)
@@ -271,29 +281,15 @@ namespace Jotunn.Managers
 
                     if (!string.IsNullOrEmpty(btn.Axis))
                     {
-                        self.AddButton(btn.Name, GetGamepadInput(GetGamepadButton(btn.Axis)), btn.RepeatDelay, btn.RepeatInterval);
+                        self.AddButton(btn.Name, GetAxisPath(btn.Axis), false, true, true, btn.RepeatDelay, btn.RepeatInterval);
                     }
                     else if (btn.Key != KeyCode.None)
                     {
-                        if (InputUtils.TryKeyCodeToMouseButton(btn.Key, out MouseButton mouseButton))
-                        {
-                            self.AddButton(btn.Name, mouseButton, btn.RepeatDelay, btn.RepeatInterval);
-                        }
-                        else
-                        {
-                            self.AddButton(btn.Name, InputUtils.KeyCodeToKey(btn.Key), btn.RepeatDelay, btn.RepeatInterval);
-                        }
+                        self.AddButton(btn.Name, ZInput.KeyCodeToPath(btn.Key), false, true, true, btn.RepeatDelay, btn.RepeatInterval);
                     }
                     else if (btn.Shortcut.MainKey != KeyCode.None)
                     {
-                        if (InputUtils.TryKeyCodeToMouseButton(btn.Shortcut.MainKey, out MouseButton mouseButton))
-                        {
-                            self.AddButton(btn.Name, mouseButton, btn.RepeatDelay, btn.RepeatInterval);
-                        }
-                        else
-                        {
-                            self.AddButton(btn.Name, InputUtils.KeyCodeToKey(btn.Shortcut.MainKey), btn.RepeatDelay, btn.RepeatInterval);
-                        }
+                        self.AddButton(btn.Name, ZInput.KeyCodeToPath(btn.Shortcut.MainKey), false, true, true, btn.RepeatDelay, btn.RepeatInterval);
                     }
 
                     if (btn.GamepadButton != GamepadButton.None)
@@ -303,7 +299,8 @@ namespace Jotunn.Managers
 
                         if (input != GamepadInput.None)
                         {
-                            self.AddButton(joyBtnName, input, btn.RepeatDelay, btn.RepeatInterval);
+                            // Input TODO
+                            //self.AddButton(joyBtnName, input, btn.RepeatDelay, btn.RepeatInterval);
                         }
                     }
 
@@ -384,7 +381,7 @@ namespace Jotunn.Managers
                 foreach (var btn in ZInput.instance.m_buttons.Where(pair => button.IsSameButton(pair.Value)))
                 {
                     ZInput.ResetButtonStatus(btn.Key);
-                    btn.Value.m_pressed = false;
+                    btn.Value.m_pressedDynamic = false;
                     btn.Value.m_pressedFixed = false;
                 }
             }

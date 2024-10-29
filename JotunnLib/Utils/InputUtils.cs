@@ -254,6 +254,26 @@ namespace Jotunn.Utils
         }
 
         /// <summary>
+        ///     Translate an axis string to its <see cref="UnityEngine.InputSystem.InputBinding.path">UnityEngine.InputSystem.InputBinding.path</see> value
+        /// </summary>
+        /// <param name="axis"></param>
+        /// <returns></returns>
+        public static string GetAxisPath(string axis)
+        {
+            return axis switch
+            {
+                "Mouse ScrollWheel" => "<Mouse>/scroll",
+                "JoyAxis 7" => "<Gamepad>/dpad/up",
+                "-JoyAxis 7" => "<Gamepad>/dpad/down",
+                "-JoyAxis 6" => "<Gamepad>/dpad/left",
+                "JoyAxis 6" => "<Gamepad>/dpad/right",
+                "-JoyAxis 3" => "<Gamepad>/leftTrigger",
+                "JoyAxis 3" => "<Gamepad>/rightTrigger",
+                _ => string.Empty
+            };
+        }
+
+        /// <summary>
         ///     Translates a <see cref="KeyCode"/> to its <see cref="GamepadButton"/> value
         /// </summary>
         public static GamepadButton GetGamepadButton(KeyCode key)
@@ -292,22 +312,12 @@ namespace Jotunn.Utils
 
             if (entry.SettingType == typeof(KeyCode) && ZInput.instance.m_buttons.TryGetValue(buttonName, out def))
             {
-                if (TryKeyCodeToMouseButton((KeyCode)entry.BoxedValue, out var mouseButton))
-                {
-                    def.m_bMouseButtonSet = true;
-                    def.m_mouseButton = mouseButton;
-                    def.m_key = Key.None;
-                }
-                else
-                {
-                    def.m_bMouseButtonSet = false;
-                    def.m_key = KeyCodeToKey((KeyCode)entry.BoxedValue);
-                }
+                def.Rebind(ZInput.KeyCodeToPath((KeyCode)entry.BoxedValue));
             }
 
             if (entry.SettingType == typeof(KeyboardShortcut) && ZInput.instance.m_buttons.TryGetValue(buttonName, out def))
             {
-                def.m_key = KeyCodeToKey(((KeyboardShortcut)entry.BoxedValue).MainKey);
+                def.Rebind(ZInput.KeyCodeToPath(((KeyboardShortcut)entry.BoxedValue).MainKey));
             }
 
             if (entry.SettingType == typeof(GamepadButton) && ZInput.instance.m_buttons.TryGetValue($"Joy!{buttonName}", out def))
@@ -315,13 +325,15 @@ namespace Jotunn.Utils
                 var keyCode = GetGamepadKeyCode((GamepadButton)entry.BoxedValue);
                 var input = GetGamepadInput((GamepadButton)entry.BoxedValue);
 
+                // Input TODO
                 if (input != GamepadInput.None)
                 {
-                    def.m_gamepadInput = input;
+                    // buttonActionBackingField.SetValue(def,
+                    // def.m_gamepadInput = input;
                 }
                 else
                 {
-                    def.m_key = KeyCodeToKey(keyCode);
+                    // def.m_key = KeyCodeToKey(ZInput.KeyCodeToPath(keyCode));
                 }
             }
         }

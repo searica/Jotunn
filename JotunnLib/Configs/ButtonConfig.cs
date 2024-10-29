@@ -206,14 +206,9 @@ namespace Jotunn.Configs
 
         internal bool IsSameButton(ZInput.ButtonDef buttonDef)
         {
-            if (InputUtils.TryKeyCodeToMouseButton(Key, out UnityEngine.InputSystem.LowLevel.MouseButton mouseButton))
-            {
-                return buttonDef.m_mouseButton == mouseButton;
-            }
-
-            return buttonDef.m_key == InputUtils.KeyCodeToKey(Key) ||
-                   buttonDef.m_key == InputUtils.KeyCodeToKey(GetGamepadKeyCode(GamepadButton)) ||
-                   buttonDef.m_gamepadInput == GetGamepadInput(GamepadButton);
+            // Input TODO
+            // return buttonDef.ButtonAction
+            return false;
         }
     }
 }
