@@ -700,7 +700,7 @@ namespace Jotunn.Managers
 #pragma warning restore 612
             InvokeOnKitbashItemsAvailable();
 
-            UpdateItemHashesSafe(other);
+            UpdateRegistersSafe(other);
             RegisterCustomItems(other);
         }
 
@@ -737,7 +737,7 @@ namespace Jotunn.Managers
         {
             if (SceneManager.GetActiveScene().name == "main")
             {
-                UpdateItemHashesSafe(self);
+                UpdateRegistersSafe(self);
                 RegisterCustomItems(self);
                 RegisterCustomRecipes(self);
                 RegisterCustomStatusEffects(self);
@@ -775,9 +775,10 @@ namespace Jotunn.Managers
             }
         }
 
-        private static void UpdateItemHashesSafe(ObjectDB objectDB)
+        private static void UpdateRegistersSafe(ObjectDB objectDB)
         {
             objectDB.m_itemByHash.Clear();
+            objectDB.m_itemByData.Clear();
 
             foreach (GameObject item in objectDB.m_items)
             {
@@ -798,6 +799,13 @@ namespace Jotunn.Managers
                 }
 
                 objectDB.m_itemByHash.Add(hash, item);
+
+                ItemDrop component = item.GetComponent<ItemDrop>();
+
+                if (component != null)
+                {
+                    objectDB.m_itemByData[component.m_itemData.m_shared] = item;
+                }
             }
         }
     }

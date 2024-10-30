@@ -128,14 +128,14 @@ namespace Jotunn.Utils
             FindAndPatchPatches(AccessTools.Method(typeof(ZNetScene), nameof(ZNetScene.Awake)));
             FindAndPatchPatches(AccessTools.Method(typeof(ObjectDB), nameof(ObjectDB.Awake)));
             FindAndPatchPatches(AccessTools.Method(typeof(ObjectDB), nameof(ObjectDB.CopyOtherDB)));
-            FindAndPatchPatches(AccessTools.Method(typeof(ObjectDB), nameof(ObjectDB.UpdateItemHashes)));
+            FindAndPatchPatches(AccessTools.Method(typeof(ObjectDB), nameof(ObjectDB.UpdateRegisters)));
         }
 
         [HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake)), HarmonyPrefix, HarmonyPriority(1000)]
         private static void ObjectDBAwake(ObjectDB __instance)
         {
             // make sure vanilla prefabs are already added to not assign them to the first mod that call this function in a prefix
-            __instance.UpdateItemHashes();
+            __instance.UpdateRegisters();
         }
 
         private static void FindAndPatchPatches(MethodBase methodInfo)

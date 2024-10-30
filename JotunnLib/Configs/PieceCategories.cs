@@ -12,32 +12,47 @@ namespace Jotunn.Configs
         /// <summary>
         ///     Piece 'Misc' category
         /// </summary>
-        public static string Misc => "Misc";
+        public static string Misc => nameof(Piece.PieceCategory.Misc);
 
         /// <summary>
         ///     Piece 'Crafting' category
         /// </summary>
-        public static string Crafting => "Crafting";
+        public static string Crafting => nameof(Piece.PieceCategory.Crafting);
 
         /// <summary>
         ///     Piece 'Building' category
         /// </summary>
-        public static string Building => "BuildingWorkbench";
+        public static string Building => nameof(Piece.PieceCategory.BuildingWorkbench);
 
         /// <summary>
         ///     Piece 'HeavyBuild' category
         /// </summary>
-        public static string HeavyBuild => "BuildingStonecutter";
+        public static string HeavyBuild => nameof(Piece.PieceCategory.BuildingStonecutter);
 
         /// <summary>
         ///     Piece 'Furniture' category
         /// </summary>
-        public static string Furniture => "Furniture";
+        public static string Furniture => nameof(Piece.PieceCategory.Furniture);
+
+        /// <summary>
+        ///     Piece 'Food' category
+        /// </summary>
+        public static string Food => nameof(Piece.PieceCategory.Food);
+
+        /// <summary>
+        ///     Piece 'Mead' category
+        /// </summary>
+        public static string Mead => nameof(Piece.PieceCategory.Meads);
+
+        /// <summary>
+        ///     Piece 'Feasts' category
+        /// </summary>
+        public static string Feasts => nameof(Piece.PieceCategory.Feasts);
 
         /// <summary>
         ///     All piece categories
         /// </summary>
-        public static string All => "All";
+        public static string All => nameof(Piece.PieceCategory.All);
 
         /// <summary>
         ///     Gets the human readable name to internal names map
@@ -93,6 +108,9 @@ namespace Jotunn.Configs
             { nameof(Building), Building },
             { nameof(HeavyBuild), HeavyBuild },
             { nameof(Furniture), Furniture },
+            { nameof(Feasts), Feasts },
+            { nameof(Food), Food },
+            { nameof(Mead), Mead },
             { nameof(All), All },
         };
 

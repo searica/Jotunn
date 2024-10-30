@@ -270,7 +270,8 @@ namespace Jotunn.Managers
                 string extenstion = key.Split('.').Last();
                 string asset = key.RemoveSuffix($".{extenstion}");
 
-                if (pair.Key == "Assets/UI/prefabs/radials/elements/Hammer.prefab")
+                if (pair.Key == "Assets/UI/prefabs/radials/elements/Hammer.prefab" ||
+                    pair.Key == "Assets/UI/prefabs/Radial/elements/Hammer.prefab")
                 {
                     // skip UI element in favour of Assets/GameElements/Items/tools/Hammer.prefab
                     continue;

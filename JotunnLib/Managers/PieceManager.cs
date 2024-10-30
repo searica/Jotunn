@@ -11,6 +11,7 @@ using Jotunn.Utils;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace Jotunn.Managers
@@ -52,6 +53,7 @@ namespace Jotunn.Managers
 
         private readonly Dictionary<string, Piece.PieceCategory> PieceCategories = new Dictionary<string, Piece.PieceCategory>();
         private readonly Dictionary<string, Piece.PieceCategory> OtherPieceCategories = new Dictionary<string, Piece.PieceCategory>();
+        private readonly Dictionary<Piece.PieceCategory, string> vanillaLabels = new Dictionary<Piece.PieceCategory, string>();
         private static bool categoryRefreshNeeded = false;
         private static string hiddenCategoryMagic = "(HiddenCategory)";
 
@@ -103,17 +105,14 @@ namespace Jotunn.Managers
 
         private static class Patches
         {
-            [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.NextCategory)), HarmonyPostfix]
-            public static void PieceTable_NextCategory_Postfix(PieceTable __instance) => Instance.PieceTable_NextCategory(__instance);
-
-            [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.PrevCategory)), HarmonyPostfix]
-            public static void PieceTable_PrevCategory_Postfix(PieceTable __instance) => Instance.PieceTable_PrevCategory(__instance);
-
             [HarmonyPatch(typeof(Player), nameof(Player.SetPlaceMode)), HarmonyPostfix]
             public static void Player_SetPlaceMode() => Instance.RefreshCategories();
 
             [HarmonyPatch(typeof(Hud), nameof(Hud.Awake)), HarmonyPostfix, HarmonyPriority(Priority.Low)]
             private static void Hud_Awake() => Instance.RefreshCategories();
+
+            [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateBuild)), HarmonyPrefix]
+            private static void Hud_UpdateBuild() => Instance.RefreshCategories();
 
             [HarmonyPatch(typeof(Hud), nameof(Hud.LateUpdate)), HarmonyPostfix]
             private static void Hud_LateUpdate()
@@ -146,15 +145,6 @@ namespace Jotunn.Managers
 
             [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.UpdateAvailable)), HarmonyTranspiler]
             private static IEnumerable<CodeInstruction> UpdateAvailable_Transpiler(IEnumerable<CodeInstruction> instructions) => TranspileMaxCategory(instructions, 0);
-
-            [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.NextCategory)), HarmonyTranspiler]
-            private static IEnumerable<CodeInstruction> NextCategory_Transpiler(IEnumerable<CodeInstruction> instructions) => TranspileMaxCategory(instructions, 0);
-
-            [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.PrevCategory)), HarmonyTranspiler]
-            private static IEnumerable<CodeInstruction> PrevCategory_Transpiler(IEnumerable<CodeInstruction> instructions) => TranspileMaxCategory(instructions, -1);
-
-            [HarmonyPatch(typeof(PieceTable), nameof(PieceTable.SetCategory)), HarmonyTranspiler]
-            private static IEnumerable<CodeInstruction> SetCategory_Transpiler(IEnumerable<CodeInstruction> instructions) => TranspileMaxCategory(instructions, -1);
 
             [HarmonyPatch(typeof(Enum), nameof(Enum.GetValues)), HarmonyPostfix]
             private static void EnumGetValuesPatch(Type enumType, ref Array __result) => Instance.EnumGetValuesPatch(enumType, ref __result);
@@ -777,12 +767,6 @@ namespace Jotunn.Managers
 
             int maxCategory = MaxCategory();
 
-            // Fill empty category names to prevent index issues, the correct names are set by the respective mods later
-            for (int i = Hud.instance.m_buildCategoryNames.Count; i < maxCategory; ++i)
-            {
-                Hud.instance.m_buildCategoryNames.Add("");
-            }
-
             // Append tabs and their names to the GUI for every custom category not already added
             for (int i = Hud.instance.m_pieceCategoryTabs.Length; i < maxCategory; i++)
             {
@@ -840,9 +824,8 @@ namespace Jotunn.Managers
 
         private GameObject CreateCategoryTab()
         {
-            Transform categoryRoot = Hud.instance.m_pieceCategoryRoot.transform;
-
-            GameObject newTab = Object.Instantiate(Hud.instance.m_pieceCategoryTabs[0], categoryRoot);
+            GameObject firstTab = Hud.instance.m_pieceCategoryTabs[0];
+            GameObject newTab = Object.Instantiate(firstTab, firstTab.transform.parent);
             newTab.SetActive(false);
 
             UIInputHandler handler = newTab.GetOrAddComponent<UIInputHandler>();
@@ -887,17 +870,19 @@ namespace Jotunn.Managers
             RectTransform categoryRoot = (RectTransform)Hud.instance.m_pieceCategoryRoot.transform;
             RectTransform selectionWindow = (RectTransform)Hud.instance.m_pieceSelectionWindow.transform;
 
+            if (firstTab.parent.TryGetComponent<HorizontalLayoutGroup>(out var layoutGroup))
+            {
+                layoutGroup.enabled = false;
+            }
+
             const int verticalSpacing = 1;
             Vector2 tabSize = firstTab.rect.size;
 
             var visibleCategories = CategoriesInPieceTable(pieceTable);
-            var categories = GetPieceCategoriesMap();
-
-            bool onlyMiscActive = visibleCategories.Count == 1 && visibleCategories.First() == Piece.PieceCategory.Misc;
-            pieceTable.m_useCategories = !onlyMiscActive;
+            UpdatePieceTableCategories(pieceTable, visibleCategories);
 
             int maxHorizontalTabs = Mathf.Max((int)(categoryRoot.rect.width / tabSize.x), 1);
-            int visibleTabs = VisibleTabCount(visibleCategories);
+            int visibleTabs = pieceTable.m_categories.Count;
 
             float tabAnchorX = (-tabSize.x * maxHorizontalTabs) / 2f + tabSize.x / 2f;
             float tabAnchorY = (tabSize.y + verticalSpacing) * Mathf.Floor((float)(visibleTabs - 1) / maxHorizontalTabs) + 5f;
@@ -905,28 +890,16 @@ namespace Jotunn.Managers
 
             int tabIndex = 0;
 
-            for (int i = 0; i < Hud.instance.m_pieceCategoryTabs.Length; ++i)
+            for (int i = 0; i < pieceTable.m_categories.Count; ++i)
             {
                 GameObject tab = Hud.instance.m_pieceCategoryTabs[i];
-                string categoryName = categories[(Piece.PieceCategory)i];
-                bool active = visibleCategories.Contains((Piece.PieceCategory)i);
-
-                SetTabActive(tab, categoryName, active);
-
-                if (active)
-                {
-                    RectTransform rect = tab.GetComponent<RectTransform>();
-                    float x = tabSize.x * (tabIndex % maxHorizontalTabs);
-                    float y = -(tabSize.y + verticalSpacing) * (Mathf.Floor((float)tabIndex / maxHorizontalTabs) + 0.5f);
-                    rect.anchoredPosition = tabAnchor + new Vector2(x, y);
-                    tabIndex++;
-                }
-
-                // only update names of own tabs, as translation tokens may be different between mods
-                if (PieceCategories.ContainsKey(categoryName))
-                {
-                    Hud.instance.m_buildCategoryNames[i] = $"${GetCategoryToken(categoryName)}";
-                }
+                RectTransform rect = tab.GetComponent<RectTransform>();
+                float x = tabSize.x * (tabIndex % maxHorizontalTabs);
+                float y = -(tabSize.y + verticalSpacing) * (Mathf.Floor((float)tabIndex / maxHorizontalTabs) + 0.5f);
+                rect.anchoredPosition = tabAnchor + new Vector2(x, y);
+                rect.anchorMin = new Vector2(0.5f, 1);
+                rect.anchorMax = new Vector2(0.5f, 1);
+                tabIndex++;
             }
 
             RectTransform background = (RectTransform)selectionWindow.Find("Bkg2")?.transform;
@@ -941,55 +914,72 @@ namespace Jotunn.Managers
                 Logger.LogWarning("Category Refresh: Could not find background image, skipping resize");
             }
 
-            if ((int)Player.m_localPlayer.m_buildPieces.m_selectedCategory >= Hud.instance.m_buildCategoryNames.Count)
-            {
-                Player.m_localPlayer.m_buildPieces.SetCategory((int)visibleCategories.First());
-            }
-
             Hud.instance.GetComponentInParent<Localize>().RefreshLocalization();
         }
 
-        private static int VisibleTabCount(HashSet<Piece.PieceCategory> visibleCategories) {
-            int visibleTabs = 0;
+        private void UpdatePieceTableCategories(PieceTable pieceTable, HashSet<Piece.PieceCategory> visibleCategories)
+        {
+            for (int i = 0; i < PieceUtils.VanillaMaxPieceCategory; i++)
+            {
+                Piece.PieceCategory category = (Piece.PieceCategory)i;
 
-            for (int i = 0; i < Hud.instance.m_pieceCategoryTabs.Length; ++i) {
-                bool active = visibleCategories.Contains((Piece.PieceCategory)i);
+                if (visibleCategories.Contains(category) && !pieceTable.m_categories.Contains(category))
+                {
+                    pieceTable.m_categories.Add(category);
+                    pieceTable.m_categoryLabels.Add(GetVanillaLabel(category));
+                }
 
-                if (active) {
-                    visibleTabs++;
+                if (!visibleCategories.Contains(category) && pieceTable.m_categories.Contains(category))
+                {
+                    int index = pieceTable.m_categories.IndexOf(category);
+                    pieceTable.m_categories.RemoveAt(index);
+                    pieceTable.m_categoryLabels.RemoveAt(index);
                 }
             }
 
-            return visibleTabs;
+            foreach (var entry in PieceCategories)
+            {
+                string name = entry.Key;
+                Piece.PieceCategory category = entry.Value;
+
+                if (visibleCategories.Contains(category) && !pieceTable.m_categories.Contains(category))
+                {
+                    pieceTable.m_categories.Add(category);
+                    pieceTable.m_categoryLabels.Add($"${GetCategoryToken(name)}");
+                }
+
+                if (!visibleCategories.Contains(category) && pieceTable.m_categories.Contains(category))
+                {
+                    int index = pieceTable.m_categories.IndexOf(category);
+                    pieceTable.m_categories.RemoveAt(index);
+                    pieceTable.m_categoryLabels.RemoveAt(index);
+                }
+            }
         }
 
-        private void PieceTable_NextCategory(PieceTable self)
+        private string GetVanillaLabel(Piece.PieceCategory category)
         {
-            if (self.m_pieces.Count == 0 || !self.m_useCategories)
+            if (!vanillaLabels.ContainsKey(category))
             {
-                return;
+                SearchVanillaLabels();
             }
 
-            var selectedTab = Hud.instance.m_pieceCategoryTabs[(int)self.m_selectedCategory];
-
-            if (selectedTab.name.Contains(hiddenCategoryMagic))
-            {
-                self.NextCategory();
-            }
+            return vanillaLabels.TryGetValue(category, out string label) ? label : string.Empty;
         }
 
-        private void PieceTable_PrevCategory(PieceTable self)
+        private void SearchVanillaLabels()
         {
-            if (self.m_pieces.Count == 0 || !self.m_useCategories)
+            foreach (var pieceTable in Resources.FindObjectsOfTypeAll<PieceTable>())
             {
-                return;
-            }
+                for (var i = 0; i < pieceTable.m_categories.Count; i++)
+                {
+                    var category = pieceTable.m_categories[i];
 
-            var selectedTab = Hud.instance.m_pieceCategoryTabs[(int)self.m_selectedCategory];
-
-            if (selectedTab.name.Contains(hiddenCategoryMagic))
-            {
-                self.PrevCategory();
+                    if (i < pieceTable.m_categoryLabels.Count && !vanillaLabels.ContainsKey(category) && !string.IsNullOrEmpty(pieceTable.m_categoryLabels[i]))
+                    {
+                        vanillaLabels[category] = pieceTable.m_categoryLabels[i];
+                    }
+                }
             }
         }
 

@@ -203,17 +203,5 @@ namespace Jotunn.Configs
         ///     Internal flag if this button config is backed by any BepInEx ConfigEntry
         /// </summary>
         internal bool IsConfigBacked => Config != null || ShortcutConfig != null || GamepadConfig != null;
-
-        internal bool IsSameButton(ZInput.ButtonDef buttonDef)
-        {
-            if (InputUtils.TryKeyCodeToMouseButton(Key, out UnityEngine.InputSystem.LowLevel.MouseButton mouseButton))
-            {
-                return buttonDef.m_mouseButton == mouseButton;
-            }
-
-            return buttonDef.m_key == InputUtils.KeyCodeToKey(Key) ||
-                   buttonDef.m_key == InputUtils.KeyCodeToKey(GetGamepadKeyCode(GamepadButton)) ||
-                   buttonDef.m_gamepadInput == GetGamepadInput(GamepadButton);
-        }
     }
 }

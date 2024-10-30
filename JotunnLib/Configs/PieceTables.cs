@@ -25,6 +25,11 @@ namespace Jotunn.Configs
         public static string Hoe => "_HoePieceTable";
 
         /// <summary>
+        ///     Serving Tray piece table
+        /// </summary>
+        public static string ServingTray => "_FeasterPieceTable";
+
+        /// <summary>
         ///     Gets the human readable name to internal names map
         /// </summary>
         /// <returns></returns>
@@ -76,6 +81,7 @@ namespace Jotunn.Configs
             { nameof(Hammer), Hammer },
             { nameof(Cultivator), Cultivator },
             { nameof(Hoe), Hoe },
+            { nameof(ServingTray), ServingTray },
         };
 
         private static readonly AcceptableValueList<string> AcceptableValues = new AcceptableValueList<string>(NamesMap.Keys.ToArray());
