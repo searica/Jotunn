@@ -6,7 +6,7 @@ using HarmonyLib;
 using Jotunn.Configs;
 using Jotunn.Utils;
 using UnityEngine;
-using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.InputSystem;
 
 namespace Jotunn.Managers
 {
@@ -387,9 +387,9 @@ namespace Jotunn.Managers
                 return true;
             }
 
-            if (button.BlockOtherInputs)
+            if (button.BlockOtherInputs && ZInput.instance.m_buttons.TryGetValue(button.Name, out var def))
             {
-                foreach (var btn in ZInput.instance.m_buttons.Where(pair => button.IsSameButton(pair.Value)))
+                foreach (var btn in ZInput.instance.m_buttons.Where(pair => IsSameButton(def, pair.Value)))
                 {
                     ZInput.ResetButtonStatus(btn.Key);
                     btn.Value.m_pressedDynamic = false;
@@ -408,6 +408,13 @@ namespace Jotunn.Managers
             }
 
             return Player.m_localPlayer.TakeInput();
+        }
+
+        private static bool IsSameButton(ZInput.ButtonDef buttonA, ZInput.ButtonDef buttonB)
+        {
+            var pathsA = buttonA.ButtonAction.bindings.Select(binding => binding.path);
+            var pathsB = buttonB.ButtonAction.bindings.Select(binding => binding.path);
+            return pathsA.Intersect(pathsB).Any();
         }
     }
 }

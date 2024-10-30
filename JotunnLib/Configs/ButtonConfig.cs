@@ -203,12 +203,5 @@ namespace Jotunn.Configs
         ///     Internal flag if this button config is backed by any BepInEx ConfigEntry
         /// </summary>
         internal bool IsConfigBacked => Config != null || ShortcutConfig != null || GamepadConfig != null;
-
-        internal bool IsSameButton(ZInput.ButtonDef buttonDef)
-        {
-            // Input TODO
-            // return buttonDef.ButtonAction
-            return false;
-        }
     }
 }
