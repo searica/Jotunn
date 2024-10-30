@@ -315,14 +315,15 @@ namespace Jotunn.Managers
                 var gamepadButton = buttonConfig.GamepadButton;
                 if (gamepadButton == GamepadButton.None && ZInput.instance.m_buttons.TryGetValue($"Joy{buttonConfig.Name}", out var buttonDef))
                 {
-                    // Input TODO
-                    //gamepadButton = GetGamepadButton(buttonDef.m_gamepadInput);
+                    // TODO extract GamepadButton from buttonDef path
+                    gamepadButton = GamepadButton.None;
                 }
 
                 if (gamepadButton != GamepadButton.None)
                 {
                     string buttonString = GetGamepadString(gamepadButton);
 
+                    // TODO fix GamepadButton keyhints
                     switch (gamepadButton)
                     {
                         case GamepadButton.DPadLeft:
