@@ -40,7 +40,7 @@ namespace JotunnDoc.Docs
             foreach (var pair in buttons.Where(x => !jotunnButtons.ContainsKey(x.Key)))
             {
                 ZInput.ButtonDef button = pair.Value;
-                AddTableRow(pair.Key, button.m_mouseButton.ToString(), button.m_key.ToString(), button.m_gamepadInput.ToString());
+                // AddTableRow(pair.Key, button.m_mouseButton.ToString(), button.m_key.ToString(), button.m_gamepadInput.ToString());
             }
 
             Save();

@@ -50,6 +50,16 @@ namespace Jotunn.Configs
         public static string GaldrTable => "piece_magetable";
 
         /// <summary>
+        ///     Mead Ketill crafting station
+        /// </summary>
+        public static string MeadKetill => "piece_MeadCauldron";
+
+        /// <summary>
+        ///     Food Preparation Table crafting station
+        /// </summary>
+        public static string FoodPreparationTable => "piece_preptable";
+
+        /// <summary>
         ///     Gets the human readable name to internal names map
         /// </summary>
         /// <returns></returns>
@@ -106,6 +116,8 @@ namespace Jotunn.Configs
             { nameof(ArtisanTable), ArtisanTable },
             { nameof(BlackForge), BlackForge },
             { nameof(GaldrTable), GaldrTable },
+            { nameof(MeadKetill), MeadKetill },
+            { nameof(FoodPreparationTable), FoodPreparationTable },
         };
 
         private static readonly AcceptableValueList<string> AcceptableValues = new AcceptableValueList<string>(NamesMap.Keys.ToArray());
