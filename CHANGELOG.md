@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.21.2
+* Fixed for Valheim 0.219.14 (Bog Witch), older Valheim versions are not compatible
+
 ## Version 2.21.1
 * Fixed changing config values in the main menu resulted in an error
 
