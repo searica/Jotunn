@@ -112,17 +112,10 @@ namespace Jotunn.Managers
             private static void Hud_Awake() => Instance.RefreshCategories();
 
             [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateBuild)), HarmonyPrefix]
-            private static void Hud_UpdateBuild() => Instance.RefreshCategories();
+            private static void Hud_UpdateBuild() => Instance.RefreshCategoriesIfNeeded();
 
             [HarmonyPatch(typeof(Hud), nameof(Hud.LateUpdate)), HarmonyPostfix]
-            private static void Hud_LateUpdate()
-            {
-                if (categoryRefreshNeeded)
-                {
-                    categoryRefreshNeeded = false;
-                    Instance.RefreshCategories();
-                }
-            }
+            private static void Hud_LateUpdate() => Instance.RefreshCategoriesIfNeeded();
 
             [HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake)), HarmonyPostfix, HarmonyPriority(Priority.Low)]
             private static void RegisterCustomData(ObjectDB __instance) => Instance.RegisterCustomData(__instance);
@@ -844,6 +837,15 @@ namespace Jotunn.Managers
             }
 
             return newTab;
+        }
+
+        private void RefreshCategoriesIfNeeded()
+        {
+            if (categoryRefreshNeeded)
+            {
+                categoryRefreshNeeded = false;
+                RefreshCategories();
+            }
         }
 
         /// <summary>

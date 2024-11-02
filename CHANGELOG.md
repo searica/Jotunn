@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.21.3
+* Fixed category tabs refreshed every frame, causing saplings to spin in the cultivator
+
 ## Version 2.21.2
 * Fixed for Valheim 0.219.14 (Bog Witch), older Valheim versions are not compatible
 
