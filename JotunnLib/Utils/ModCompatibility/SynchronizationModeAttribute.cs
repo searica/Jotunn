@@ -22,6 +22,16 @@ namespace Jotunn.Utils
         Always = 1,
 
     }
+
+    /// <summary>
+    /// Synchronization Mode attribute<br />
+    /// <br/>
+    /// PLEASE READ<br />
+    /// Example usage:<br />
+    /// If your mod should behave as a client-side only mod in multiplayer whenever Jotunn is not installed on the server then IfJotunnOnServer is a must.<br />
+    /// Otherwise the default behaviour is to the same as if you set this to Always and players will not be able to change any AdminOnly Config Entries when 
+    /// connected to a server where they are not an admin even if Jotunn is not installed on the server. 
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Assembly)]
     public class SynchronizationModeAttribute : Attribute
     {
