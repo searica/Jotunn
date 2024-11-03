@@ -30,6 +30,15 @@ namespace Jotunn.Utils
             Main.Harmony.PatchAll(typeof(ModCompatibility));
         }
 
+        public static bool IsJotunnOnServer()
+        {
+            if (ZNet.instance && ZNet.instance.IsClientInstance())
+            {
+                return LastServerVersion != null;
+            }
+            return true;
+        }
+       
         [HarmonyPatch(typeof(ZNet), nameof(ZNet.OnNewConnection)), HarmonyPrefix, HarmonyPriority(Priority.First)]
         private static void ZNet_OnNewConnection(ZNet __instance, ZNetPeer peer)
         {
