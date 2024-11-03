@@ -465,16 +465,31 @@ namespace Jotunn.Managers
             OnAdminStatusChanged?.SafeInvoke();
         }
 
+        /// <summary>
+        ///     Gets an IEnumerable of all default and custom config files that should be managed by SynchronizationManager. 
+        ///     Ignores config files for plugins with AdminOnlyStrictness == Low if Jotunn is not installed on the server.
+        /// </summary>
+        /// <returns></returns>
         private IEnumerable<ConfigFile> GetConfigFiles()
         {
             var loadedPlugins = BepInExUtils.GetDependentPlugins(true);
 
-            foreach (var plugin in loadedPlugins.Values)
+            foreach (BaseUnityPlugin plugin in loadedPlugins.Values)
             {
-                yield return plugin.Config;
+                if (ShouldManageConfig(plugin))
+                {
+                    yield return plugin.Config;
+                }
             }
+            foreach (ConfigFile customConfigFile in CustomConfigs.Values)
+            {
+                if (ShouldManageConfig(customConfigFile))
+                {
+                    yield return customConfigFile;
+                }
+            }
+        }
 
-            foreach (var customConfigFile in CustomConfigs.Values)
         /// <summary>
         ///     Checks if AdminOnly config entries should be locked based the AdminOnlyStrictness value for the plugin that the
         ///     config file is attached to (including custom config files) and whether Jotunn is installed on the server or not.
@@ -485,7 +500,6 @@ namespace Jotunn.Managers
         {
             if (ModCompatibility.IsJotunnOnServer())
             {
-                yield return customConfigFile;
                 return true;
             }
             if (!GetPluginGUID(config, out var pluginGUID))
