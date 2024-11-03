@@ -7,6 +7,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using Jotunn.Entities;
+using Jotunn.Extensions;
 using Jotunn.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -474,9 +475,48 @@ namespace Jotunn.Managers
             }
 
             foreach (var customConfigFile in CustomConfigs.Values)
+        /// <summary>
+        ///     Checks if AdminOnly config entries should be locked based the AdminOnlyStrictness value for the plugin that the
+        ///     config file is attached to (including custom config files) and whether Jotunn is installed on the server or not.
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        private bool ShouldManageConfig(ConfigFile config)
+        {
+            if (ModCompatibility.IsJotunnOnServer())
             {
                 yield return customConfigFile;
+                return true;
             }
+            if (!GetPluginGUID(config, out var pluginGUID))
+            {
+                return false;
+            }
+            if (!BepInExUtils.GetDependentPlugins().TryGetValue(pluginGUID, out var plugin))
+            {
+                return false;
+            }
+            return ShouldManageConfig(plugin);
+        }
+
+        /// <summary>
+        ///     Checks if AdminOnly config entries should be locked based the AdminOnlyStrictness value for the plugin
+        ///     and whether Jotunn is installed on the server or not.
+        /// </summary>
+        /// <param name="plugin"></param>
+        /// <returns></returns>
+        private bool ShouldManageConfig(BaseUnityPlugin plugin)
+        {
+            if (ModCompatibility.IsJotunnOnServer())
+            {
+                return true;
+            }
+            SynchronizationModeAttribute syncMode = plugin.GetSynchronizationModeAttribute();
+            if (syncMode == null || syncMode.ShouldAlwaysEnforceAdminOnly())
+            {
+                return true;
+            }
+            return false;
         }
 
         private static string GetFileIdentifier(ConfigFile config)
