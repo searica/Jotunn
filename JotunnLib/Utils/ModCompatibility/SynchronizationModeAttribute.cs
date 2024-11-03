@@ -22,7 +22,8 @@ namespace Jotunn.Utils
         Always = 1,
 
     }
-    internal class SynchronizationModeAttribute
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Assembly)]
+    public class SynchronizationModeAttribute : Attribute
     {
         /// <summary>
         ///     AdminOnly ConfigEntry Strictness
