@@ -525,6 +525,11 @@ namespace Jotunn.Managers
             {
                 return true;
             }
+
+            // Current behaviour is that AdminOnly config entries are always locked
+            // if Jotunn is not on the server. So if SynchronizationModeAttribute has
+            // not been set for the mod then return true to mimic current behaviour and 
+            // maintain backwards compatibility.
             SynchronizationModeAttribute syncMode = plugin.GetSynchronizationModeAttribute();
             if (syncMode == null || syncMode.ShouldAlwaysEnforceAdminOnly())
             {
