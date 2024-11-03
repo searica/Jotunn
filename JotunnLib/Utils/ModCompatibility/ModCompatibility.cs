@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using HarmonyLib;
+using Jotunn.Extensions;
 using Jotunn.Managers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -439,10 +440,7 @@ namespace Jotunn.Utils
         {
             foreach (var plugin in BepInExUtils.GetDependentPlugins(true).OrderBy(x => x.Key))
             {
-                var networkCompatibilityAttribute = plugin.Value.GetType()
-                    .GetCustomAttributes(typeof(NetworkCompatibilityAttribute), true)
-                    .Cast<NetworkCompatibilityAttribute>()
-                    .FirstOrDefault();
+                var networkCompatibilityAttribute = plugin.Value.GetNetworkCompatibilityAttribute();
 
                 if (networkCompatibilityAttribute != null)
                 {
