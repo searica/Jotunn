@@ -13,12 +13,13 @@ namespace Jotunn.Utils
         /// <summary>
         ///     AdminOnly is only enforced for Config Entries if Jotunn is installed on the server.
         /// </summary>
-        Low = 0,
+        IfJotunnOnServer = 0,
+        
         /// <summary>
         ///     AdminOnly is always enforced for Config Entries even if Jotunn is not installed on the server. 
         ///     This means that AdminOnly configs cannot be editted in multiplayer if Jotunn is not on the server.
         /// </summary>
-        High = 1,
+        Always = 1,
 
     }
     internal class SynchronizationModeAttribute
@@ -43,7 +44,7 @@ namespace Jotunn.Utils
         /// <returns></returns>
         public bool ShouldAlwaysEnforceAdminOnly()
         {
-            return EnforceAdminOnly == AdminOnlyStrictness.High;
+            return EnforceAdminOnly == AdminOnlyStrictness.Always;
         }
     }
 }
