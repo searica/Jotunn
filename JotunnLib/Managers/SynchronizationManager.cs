@@ -484,6 +484,24 @@ namespace Jotunn.Managers
             return config.ConfigFilePath.Replace(BepInEx.Paths.ConfigPath, "").Replace("\\", "/").Trim('/');
         }
 
+        /// <summary>
+        ///     Gets the corresponding Plugin GUID for a config file (works for custom config files) 
+        ///     and returns a boolean indicating success or failure.
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="pluginGUID"></param>
+        private bool GetPluginGUID(ConfigFile config, out string pluginGUID)
+        {
+            var configFileIdentifier = GetFileIdentifier(config);
+            return GetPluginGUID(configFileIdentifier, out pluginGUID);
+        }
+
+        /// <summary>
+        ///     Gets the corresponding Plugin GUID for a config file identifier (works for custom config files) 
+        ///     and returns a boolean indicating success or failure.
+        /// </summary>
+        /// <param name="configFileIdentifier"></param>
+        /// <param name="pluginGUID"></param>
         private bool GetPluginGUID(string configFileIdentifier, out string pluginGUID)
         {
             if (IsDefaultModConfig(configFileIdentifier, out pluginGUID))
