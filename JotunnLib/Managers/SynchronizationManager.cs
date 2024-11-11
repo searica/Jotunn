@@ -874,6 +874,11 @@ namespace Jotunn.Managers
         {
             foreach (var config in GetConfigFiles())
             {
+                if (!ShouldManageConfig(config))
+                {
+                    continue;
+                }
+
                 foreach (var configDefinition in config.Keys)
                 {
                     var configEntry = config[configDefinition.Section, configDefinition.Key];
