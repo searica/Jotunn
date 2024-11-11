@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -52,7 +52,7 @@ namespace Jotunn.Utils
                     return false;
                 }
                 var serverData = new ModuleVersionData(LastServerVersion);
-                var moduleNames = new HashSet<string>(serverData.Modules.Select(mod => mod.name).ToList());
+                var moduleNames = new HashSet<string>(serverData.Modules.Select(mod => mod.guid).ToList());
                 return moduleNames.Contains(modGUID);
             }
             return true;
