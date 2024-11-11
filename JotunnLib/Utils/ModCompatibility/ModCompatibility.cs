@@ -33,6 +33,11 @@ namespace Jotunn.Utils
 
         public static bool IsJotunnOnServer()
         {
+            return IsModuleOnServer(Main.ModGuid);
+        }
+
+        public static bool IsModuleOnServer(string modGUID)
+        {
             if (ZNet.instance && ZNet.instance.IsClientInstance())
             {
                 if (LastServerVersion == null)
