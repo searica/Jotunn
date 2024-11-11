@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using BepInEx;
 using HarmonyLib;
 using Jotunn.Extensions;
 using Jotunn.Managers;
@@ -34,6 +35,12 @@ namespace Jotunn.Utils
         public static bool IsJotunnOnServer()
         {
             return IsModuleOnServer(Main.ModGuid);
+        }
+
+
+        public static bool IsModuleOnServer(BaseUnityPlugin plugin)
+        {
+            return IsModuleOnServer(plugin.Info.Metadata.GUID);
         }
 
         public static bool IsModuleOnServer(string modGUID)
