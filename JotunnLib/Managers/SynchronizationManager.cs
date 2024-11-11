@@ -521,7 +521,7 @@ namespace Jotunn.Managers
         /// <returns></returns>
         private bool ShouldManageConfig(BaseUnityPlugin plugin)
         {
-            if (ModCompatibility.IsJotunnOnServer())
+            if (ModCompatibility.IsModuleOnServer(plugin))
             {
                 return true;
             }
