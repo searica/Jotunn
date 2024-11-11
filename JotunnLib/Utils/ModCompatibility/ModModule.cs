@@ -4,13 +4,15 @@ namespace Jotunn.Utils
 {
     internal class ModModule
     {
+        public string guid;
         public string name;
         public System.Version version;
         public CompatibilityLevel compatibilityLevel;
         public VersionStrictness versionStrictness;
 
-        public ModModule(string name, System.Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
+        public ModModule(string guid, string name, System.Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
         {
+            this.guid = guid;
             this.name = name;
             this.version = version;
             this.compatibilityLevel = compatibilityLevel;
@@ -19,6 +21,7 @@ namespace Jotunn.Utils
 
         public ModModule(ZPackage pkg)
         {
+            guid = pkg.ReadString();
             name = pkg.ReadString();
             int major = pkg.ReadInt();
             int minor = pkg.ReadInt();
@@ -30,6 +33,7 @@ namespace Jotunn.Utils
 
         public void WriteToPackage(ZPackage pkg)
         {
+            pkg.Write(guid);
             pkg.Write(name);
             pkg.Write(version.Major);
             pkg.Write(version.Minor);
@@ -40,6 +44,7 @@ namespace Jotunn.Utils
 
         public ModModule(BepInPlugin plugin, NetworkCompatibilityAttribute networkAttribute)
         {
+            this.guid = plugin.GUID;
             this.name = plugin.Name;
             this.version = plugin.Version;
             this.compatibilityLevel = networkAttribute.EnforceModOnClients;
@@ -48,6 +53,7 @@ namespace Jotunn.Utils
 
         public ModModule(BepInPlugin plugin)
         {
+            this.guid = plugin.GUID;
             this.name = plugin.Name;
             this.version = plugin.Version;
             this.compatibilityLevel = CompatibilityLevel.NotEnforced;
