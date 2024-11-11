@@ -492,7 +492,7 @@ namespace Jotunn.Managers
 
         /// <summary>
         ///     Checks if AdminOnly config entries should be locked based the AdminOnlyStrictness value for the plugin that the
-        ///     config file is attached to (including custom config files) and whether Jotunn is installed on the server or not.
+        ///     config file is attached to (including custom config files) and whether the plugin is installed on the server or not.
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
@@ -511,7 +511,7 @@ namespace Jotunn.Managers
 
         /// <summary>
         ///     Checks if AdminOnly config entries should be locked based the AdminOnlyStrictness value for the plugin
-        ///     and whether Jotunn is installed on the server or not.
+        ///     and whether the plugin is installed on the server or not.
         /// </summary>
         /// <param name="plugin"></param>
         /// <returns></returns>
