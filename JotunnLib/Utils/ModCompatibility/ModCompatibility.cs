@@ -52,8 +52,8 @@ namespace Jotunn.Utils
                     return false;
                 }
                 var serverData = new ModuleVersionData(LastServerVersion);
-                var moduleNames = new HashSet<string>(serverData.Modules.Select(mod => mod.guid).ToList());
-                return moduleNames.Contains(modGUID);
+                var moduleGUIDs = new HashSet<string>(serverData.Modules.Select(mod => mod.guid).ToList());
+                return moduleGUIDs.Contains(modGUID);
             }
             return true;
         }
