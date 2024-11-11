@@ -51,6 +51,8 @@ namespace Jotunn.Utils
                 {
                     return false;
                 }
+                // maybe the HashSet of Module GUIDs should be cached along with LastServerVersion
+                // and reset along with it to, just to avoid construction of the HashSet
                 var serverData = new ModuleVersionData(LastServerVersion);
                 var moduleGUIDs = new HashSet<string>(serverData.Modules.Select(mod => mod.guid).ToList());
                 return moduleGUIDs.Contains(modGUID);
