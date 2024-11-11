@@ -466,8 +466,7 @@ namespace Jotunn.Managers
         }
 
         /// <summary>
-        ///     Gets an IEnumerable of all default and custom config files that should be managed by SynchronizationManager. 
-        ///     Ignores config files for plugins with AdminOnlyStrictness == Low if Jotunn is not installed on the server.
+        ///     Gets an IEnumerable of all default and custom config files that associated with plugins that have Jotunn as a dependency.
         /// </summary>
         /// <returns></returns>
         private IEnumerable<ConfigFile> GetConfigFiles()
@@ -476,17 +475,11 @@ namespace Jotunn.Managers
 
             foreach (BaseUnityPlugin plugin in loadedPlugins.Values)
             {
-                if (ShouldManageConfig(plugin))
-                {
-                    yield return plugin.Config;
-                }
+                yield return plugin.Config;
             }
             foreach (ConfigFile customConfigFile in CustomConfigs.Values)
             {
-                if (ShouldManageConfig(customConfigFile))
-                {
-                    yield return customConfigFile;
-                }
+                yield return customConfigFile;
             }
         }
 
