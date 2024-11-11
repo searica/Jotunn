@@ -6,18 +6,18 @@ namespace Jotunn.Utils
 
     /// <summary>
     ///     Enum used for telling whether AdminOnly settings for Config Entries should always be enforced 
-    ///     or if they should only be enforced when Jotunn is installed on the server.
+    ///     or if they should only be enforced when the mod is installed on the server.
     /// </summary>
     public enum AdminOnlyStrictness : int
     {
         /// <summary>
-        ///     AdminOnly is only enforced for Config Entries if Jotunn is installed on the server.
+        ///     AdminOnly is only enforced for Config Entries if the mod is installed on the server.
         /// </summary>
         IfOnServer = 0,
         
         /// <summary>
-        ///     AdminOnly is always enforced for Config Entries even if Jotunn is not installed on the server. 
-        ///     This means that AdminOnly configs cannot be editted in multiplayer if Jotunn is not on the server.
+        ///     AdminOnly is always enforced for Config Entries even if the mod is not installed on the server. 
+        ///     This means that AdminOnly configs cannot be edited in multiplayer if the mod is not on the server.
         /// </summary>
         Always = 1,
 
@@ -28,9 +28,9 @@ namespace Jotunn.Utils
     /// <br/>
     /// PLEASE READ<br />
     /// Example usage:<br />
-    /// If your mod should behave as a client-side only mod in multiplayer whenever Jotunn is not installed on the server then IfJotunnOnServer is a must.<br />
+    /// If your mod should behave as a client-side only mod in multiplayer whenever the mod is not installed on the server then IfOnServer is a must.<br />
     /// Otherwise the default behaviour is to the same as if you set this to Always and players will not be able to change any AdminOnly Config Entries when 
-    /// connected to a server where they are not an admin even if Jotunn is not installed on the server. 
+    /// connected to a server where they are not an admin even if the mod is not installed on the server. 
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Assembly)]
     public class SynchronizationModeAttribute : Attribute
