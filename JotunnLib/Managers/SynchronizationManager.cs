@@ -498,10 +498,6 @@ namespace Jotunn.Managers
         /// <returns></returns>
         private bool ShouldManageConfig(ConfigFile config)
         {
-            if (ModCompatibility.IsJotunnOnServer())
-            {
-                return true;
-            }
             if (!GetPluginGUID(config, out var pluginGUID))
             {
                 return false;
