@@ -35,7 +35,13 @@ namespace Jotunn.Utils
         {
             if (ZNet.instance && ZNet.instance.IsClientInstance())
             {
-                return LastServerVersion != null;
+                if (LastServerVersion == null)
+                {
+                    return false;
+                }
+                var serverData = new ModuleVersionData(LastServerVersion);
+                var moduleNames = new HashSet<string>(serverData.Modules.Select(mod => mod.name).ToList());
+                return moduleNames.Contains(modGUID);
             }
             return true;
         }
