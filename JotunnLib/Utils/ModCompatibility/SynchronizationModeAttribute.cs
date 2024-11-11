@@ -13,7 +13,7 @@ namespace Jotunn.Utils
         /// <summary>
         ///     AdminOnly is only enforced for Config Entries if Jotunn is installed on the server.
         /// </summary>
-        IfJotunnOnServer = 0,
+        IfOnServer = 0,
         
         /// <summary>
         ///     AdminOnly is always enforced for Config Entries even if Jotunn is not installed on the server. 
