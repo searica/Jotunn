@@ -22,7 +22,8 @@ namespace Jotunn.Utils
         /// <summary>
         ///     Stores the last server message.
         /// </summary>
-        private static ZPackage LastServerVersion;
+        //private static ZPackage LastServerVersion;
+        private static ServerVersionData LastServerVersionData = new ServerVersionData();
 
         private static readonly Dictionary<string, ZPackage> ClientVersions = new Dictionary<string, ZPackage>();
 
@@ -47,15 +48,12 @@ namespace Jotunn.Utils
         {
             if (ZNet.instance && ZNet.instance.IsClientInstance())
             {
-                if (LastServerVersion == null)
+                if (LastServerVersionData.IsValid())
                 {
-                    return false;
+                    return LastServerVersionData.moduleGUIDs.Contains(modGUID);
                 }
-                // maybe the HashSet of Module GUIDs should be cached along with LastServerVersion
-                // and reset along with it to, just to avoid construction of the HashSet
-                var serverData = new ModuleVersionData(LastServerVersion);
-                var moduleGUIDs = new HashSet<string>(serverData.Modules.Select(mod => mod.guid).ToList());
-                return moduleGUIDs.Contains(modGUID);
+                return false;
+
             }
             return true;
         }
@@ -64,7 +62,7 @@ namespace Jotunn.Utils
         private static void ZNet_OnNewConnection(ZNet __instance, ZNetPeer peer)
         {
             // clear the previous connection, if existing
-            LastServerVersion = null;
+            LastServerVersionData.Reset();
 
             // Register our RPC very early
             peer.m_rpc.Register<ZPackage>(nameof(RPC_Jotunn_ReceiveVersionData), RPC_Jotunn_ReceiveVersionData);
@@ -88,7 +86,7 @@ namespace Jotunn.Utils
         [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.ShowConnectError)), HarmonyPostfix, HarmonyPriority(Priority.Last)]
         private static void FejdStartup_ShowConnectError(FejdStartup __instance)
         {
-            if (LastServerVersion != null && ZNet.m_connectionStatus == ZNet.ConnectionStatus.ErrorVersion)
+            if (LastServerVersionData.IsValid() && ZNet.m_connectionStatus == ZNet.ConnectionStatus.ErrorVersion)
             {
                 string failedConnectionText = __instance.m_connectionFailedError.text;
                 __instance.StartCoroutine(ShowModCompatibilityErrorMessage(failedConnectionText));
@@ -103,13 +101,13 @@ namespace Jotunn.Utils
             if (ZNet.instance.IsClientInstance())
             {
                 // If there was no server version response, Jötunn is not installed. Cancel if we have mandatory mods
-                if (LastServerVersion == null && GetEnforcableMods().Any(x => x.IsNeededOnServer()))
+                if (!LastServerVersionData.IsValid() && GetEnforcableMods().Any(x => x.IsNeededOnServer()))
                 {
                     string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnServer()).Select(x => x.name));
                     Logger.LogWarning("Jötunn is not installed on the server. Client has mandatory mods, cancelling connection. " +
                                       "Mods that need to be installed on the server:" + Environment.NewLine + missingMods);
                     rpc.Invoke("Disconnect");
-                    LastServerVersion = new ModuleVersionData(new List<ModModule>()).ToZPackage();
+                    LastServerVersionData = new ServerVersionData(new List<ModModule>());
                     ZNet.m_connectionStatus = ZNet.ConnectionStatus.ErrorVersion;
                     return false;
                 }
@@ -184,7 +182,7 @@ namespace Jotunn.Utils
             }
             else
             {
-                LastServerVersion = data;
+                LastServerVersionData = new ServerVersionData(data);
             }
         }
 
@@ -260,7 +258,7 @@ namespace Jotunn.Utils
         private static IEnumerator ShowModCompatibilityErrorMessage(string failedConnectionText)
         {
             var compatWindow = LoadCompatWindow();
-            var remote = new ModuleVersionData(LastServerVersion);
+            var remote = LastServerVersionData.moduleVersionData;
             var local = new ModuleVersionData(GetEnforcableMods().ToList());
 
             // print issues to console
@@ -287,7 +285,7 @@ namespace Jotunn.Utils
             compatWindow.scrollRect.verticalNormalizedPosition = 1f;
 
             // Reset the last server version
-            LastServerVersion = null;
+            LastServerVersionData.Reset();
         }
 
         private static void OpenLogFile()
