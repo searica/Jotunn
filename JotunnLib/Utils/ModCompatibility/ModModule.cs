@@ -22,6 +22,7 @@ namespace Jotunn.Utils
 
         public ModModule(string guid, string name, System.Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
         {
+            this.dataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = guid;
             this.name = name;
             this.version = version;
