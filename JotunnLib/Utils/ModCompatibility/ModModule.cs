@@ -37,8 +37,25 @@ namespace Jotunn.Utils
             versionStrictness = (VersionStrictness)pkg.ReadInt();
         }
 
-        public void WriteToPackage(ZPackage pkg)
+        /// <summary>
+        ///     Write to ZPkg
+        /// </summary>
+        /// <param name="pkg"></param>
+        /// <param name="legacy"></param>
+        public void WriteToPackage(ZPackage pkg, bool legacy)
         {
+            if (legacy)
+            {
+                pkg.Write(name);
+                pkg.Write(version.Major);
+                pkg.Write(version.Minor);
+                pkg.Write(version.Build);
+                pkg.Write((int)compatibilityLevel);
+                pkg.Write((int)versionStrictness);
+                return;
+            }
+
+            pkg.Write(dataLayoutVersion);
             pkg.Write(guid);
             pkg.Write(name);
             pkg.Write(version.Major);
