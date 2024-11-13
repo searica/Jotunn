@@ -73,6 +73,21 @@ namespace Jotunn.Utils
                 {
                     NetworkVersion = pkg.ReadUInt();
                 }
+
+
+                if (pkg.m_reader.BaseStream.Position != pkg.m_reader.BaseStream.Length)
+                {
+                    Modules.Clear(); // Discard legacy modules
+
+                    // Read and store the relevant ModModules
+                    var numberOfModules = pkg.ReadInt();
+                    while (numberOfModules > 0)
+                    {
+                        Modules.Add(new ModModule(pkg, legacy: false));
+                        numberOfModules--;
+                    }
+                }
+                
             }
             catch (Exception ex)
             {
