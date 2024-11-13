@@ -51,19 +51,8 @@ namespace Jotunn.Utils
 
             if (!this.IsSupportedDataLayout())
             {
-                // This is a dataLayoutVersion that this version of Jotunn does not know how to handle.
-                // Which means that data from a newer version of Jotunn has been received and everything
-                // except dataLayoutVersion will be left as null.
-
-                // Populate current layout of ModModule with a fake newer version of Jotunn that will trigger an error.
-                //guid = Main.ModGuid;
-                //name = "Unknown. Jotunn is not the same version on client and server.";
-                //var verNums = Array.ConvertAll(Main.Version.Split('.'), int.Parse);
-                //version = new System.Version(verNums[0], verNums[1], verNums[2] + 1);
-                //var netWorkCompat = Main.Instance.GetNetworkCompatibilityAttribute();
-                //compatibilityLevel = netWorkCompat.EnforceModOnClients;
-                //versionStrictness = netWorkCompat.EnforceSameVersion;
-                return;
+                // Data from a newer version of Jotunn has been received and cannot be read.
+                throw new NotSupportedException($"{dataLayoutVersion} is not a supported data layout version.");
             }
 
             if (dataLayoutVersion == 1)
