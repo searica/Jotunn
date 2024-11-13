@@ -50,6 +50,7 @@ namespace Jotunn.Utils
 
         public ModModule(BepInPlugin plugin, NetworkCompatibilityAttribute networkAttribute)
         {
+            this.dataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = plugin.GUID;
             this.name = plugin.Name;
             this.version = plugin.Version;
@@ -59,6 +60,7 @@ namespace Jotunn.Utils
 
         public ModModule(BepInPlugin plugin)
         {
+            this.dataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = plugin.GUID;
             this.name = plugin.Name;
             this.version = plugin.Version;
