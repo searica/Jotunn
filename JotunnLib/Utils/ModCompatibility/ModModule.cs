@@ -25,16 +25,43 @@ namespace Jotunn.Utils
             this.versionStrictness = versionStrictness;
         }
 
-        public ModModule(ZPackage pkg)
+        public ModModule(ZPackage pkg, bool legacy)
         {
-            guid = pkg.ReadString();
-            name = pkg.ReadString();
-            int major = pkg.ReadInt();
-            int minor = pkg.ReadInt();
-            int build = pkg.ReadInt();
-            version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
-            compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
-            versionStrictness = (VersionStrictness)pkg.ReadInt();
+            if (legacy)
+            {
+                dataLayoutVersion = -1;
+                int major = pkg.ReadInt();
+                int minor = pkg.ReadInt();
+                int build = pkg.ReadInt();
+                version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
+                compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
+                versionStrictness = (VersionStrictness)pkg.ReadInt();
+                return;
+            }
+            else
+            {
+                dataLayoutVersion = pkg.ReadInt();
+               
+                switch (dataLayoutVersion)
+                {
+                    case 1:
+                        break;
+                    default:
+                        // This is a dataLayoutVersion that this version of Jotunn does not know how to handle.
+                        // Which means that data from a newer version of Jotunn has been recieved.
+                }
+                   
+                        
+                // do stuff based on dataLayoutVersion
+                guid = pkg.ReadString();
+                name = pkg.ReadString();
+                int major = pkg.ReadInt();
+                int minor = pkg.ReadInt();
+                int build = pkg.ReadInt();
+                version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
+                compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
+                versionStrictness = (VersionStrictness)pkg.ReadInt();
+            }
         }
 
         /// <summary>
