@@ -195,6 +195,18 @@ namespace Jotunn.Utils
 
             bool result = true;
 
+            // Check for supported ModModule data layout
+            if (!clientData.IsSupportedDataLayout)
+            {
+                Logger.LogWarning($"Jotunn version on client is higher than server version: {Main.Version}");
+                result = false;
+            }
+            if (!serverData.IsSupportedDataLayout)
+            {
+                Logger.LogWarning($"Jotunn version on server is higher than client version: {Main.Version}");
+                result = false;
+            }   
+
             // Check server enforced mods
             foreach (var serverModule in FindNotInstalledMods(serverData, clientData))
             {
