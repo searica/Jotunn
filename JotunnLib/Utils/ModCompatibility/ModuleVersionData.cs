@@ -74,7 +74,7 @@ namespace Jotunn.Utils
                     NetworkVersion = pkg.ReadUInt();
                 }
 
-
+                // Get current data layout ModModules if present
                 if (pkg.m_reader.BaseStream.Position != pkg.m_reader.BaseStream.Length)
                 {
                     Modules.Clear(); // Discard legacy modules
