@@ -168,7 +168,8 @@ namespace Jotunn.Utils
         }
 
         /// <summary>
-        ///     Module is formatted as in one of the supported data layout versions.
+        ///     Module is formatted as in one of the supported data layout versions. 
+        ///     Should return false is data was received from a newer version of Jotunn.
         /// </summary>
         /// <returns></returns>
         public bool IsSupportedDataLayout()
