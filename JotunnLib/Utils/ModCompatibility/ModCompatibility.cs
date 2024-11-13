@@ -324,13 +324,30 @@ namespace Jotunn.Utils
         /// <returns></returns>
         private static string CreateErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
         {
-            return CreateVanillaVersionErrorMessage(serverData, clientData) +
+        
+            return CreateModModuleLayoutErrorMessage(serverData, clientData)+
+                   CreateVanillaVersionErrorMessage(serverData, clientData) +
                    CreateNotInstalledErrorMessage(serverData, clientData) +
                    CreateLowerVersionErrorMessage(serverData, clientData) +
                    CreateHigherVersionErrorMessage(serverData, clientData) +
                    CreateAdditionalModsErrorMessage(serverData, clientData) +
                    CreateFurtherStepsMessage();
         }
+
+        private static string CreateModModuleLayoutErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
+        {
+            if (!clientData.IsSupportedDataLayout)
+            {
+                return ColoredLine(Color.red, $"Jotunn version on client is higher than server version: {Main.Version}");
+            }
+            if (!serverData.IsSupportedDataLayout)
+            {
+                return ColoredLine(Color.red, $"Jotunn version on server is higher than client version: {Main.Version}");
+            }
+            
+            return string.Empty;
+        }
+
 
         private static string CreateVanillaVersionErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
         {
