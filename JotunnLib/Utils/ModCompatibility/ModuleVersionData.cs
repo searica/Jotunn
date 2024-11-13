@@ -211,22 +211,6 @@ namespace Jotunn.Utils
             return FindModule(name) != null;
         }
 
-        /// <summary>
-        ///     Checks if all ModModules are in a supported data layout.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsSupportedDataLayout()
-        {
-            foreach (var mod in Modules) {
-            
-                if (!mod.IsSupportedDataLayout())
-                {
-                    return false;
-                } 
-            }
-            return true;
-        }
-
         private static string GetVersionString()
         {
             // ServerCharacters replaces the version string on the server but not client and does it's own checks afterwards
