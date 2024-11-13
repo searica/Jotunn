@@ -96,11 +96,17 @@ namespace Jotunn.Utils
 
             foreach (var module in Modules)
             {
-                module.WriteToPackage(pkg);
+                module.WriteToPackage(pkg, legacy: true);
             }
 
             pkg.Write(VersionString);
             pkg.Write(NetworkVersion);
+
+            pkg.Write(Modules.Count);
+            foreach (var module in Modules)
+            {
+                module.WriteToPackage(pkg, legacy: false);
+            }
 
             return pkg;
         }
