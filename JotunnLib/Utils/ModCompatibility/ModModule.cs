@@ -4,7 +4,7 @@ namespace Jotunn.Utils
 {
     internal class ModModule
     {
-        public const int DataLayoutVersion = 1;
+        public const int CurrentDataLayoutVersion = 1;
 
         /// <summary>
         ///     DataLayoutVersion indicates the version layout of data within the ZPkg. If equal to -1 then it is a legacy format.
