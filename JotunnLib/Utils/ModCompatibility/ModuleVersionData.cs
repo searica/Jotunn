@@ -24,6 +24,8 @@ namespace Jotunn.Utils
 
         public uint NetworkVersion { get; internal set; }
 
+        public bool IsSupportedDataLayout { get; private set; } = true;
+
         /// <summary>
         ///     Create from module data
         /// </summary>
