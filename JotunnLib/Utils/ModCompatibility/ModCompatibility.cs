@@ -185,7 +185,13 @@ namespace Jotunn.Utils
                 LastServerVersionData = new ServerVersionData(data);
             }
         }
-
+        
+        /// <summary>
+        ///     Compares version data on server and client.
+        /// </summary>
+        /// <param name="serverData"></param>
+        /// <param name="clientData"></param>
+        /// <returns></returns>
         internal static bool CompareVersionData(ModuleVersionData serverData, ModuleVersionData clientData)
         {
             if (ReferenceEquals(serverData, clientData))
