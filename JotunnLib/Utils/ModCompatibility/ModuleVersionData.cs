@@ -56,12 +56,12 @@ namespace Jotunn.Utils
                 pkg.SetPos(0);
                 ValheimVersion = new System.Version(pkg.ReadInt(), pkg.ReadInt(), pkg.ReadInt());
 
-                var numberOfModules = pkg.ReadInt();
-
-                while (numberOfModules > 0)
+                // Read encoded ModModules in legacy format
+                var numberOfLegacyModules = pkg.ReadInt();
+                while (numberOfLegacyModules > 0)
                 {
-                    Modules.Add(new ModModule(pkg));
-                    numberOfModules--;
+                    Modules.Add(new ModModule(pkg, legacy: true));
+                    numberOfLegacyModules--;
                 }
 
                 if (pkg.m_reader.BaseStream.Position != pkg.m_reader.BaseStream.Length)
