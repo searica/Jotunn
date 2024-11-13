@@ -1,4 +1,6 @@
-﻿using BepInEx;
+using System.Collections.Generic;
+using System.Linq;
+using BepInEx;
 
 namespace Jotunn.Utils
 {
@@ -38,30 +40,29 @@ namespace Jotunn.Utils
                 versionStrictness = (VersionStrictness)pkg.ReadInt();
                 return;
             }
-            else
+        
+            // Handle deserialization based on dataLayoutVersion
+            dataLayoutVersion = pkg.ReadInt();
+            switch (dataLayoutVersion)
             {
-                dataLayoutVersion = pkg.ReadInt();
-               
-                switch (dataLayoutVersion)
-                {
-                    case 1:
-                        break;
-                    default:
-                        // This is a dataLayoutVersion that this version of Jotunn does not know how to handle.
-                        // Which means that data from a newer version of Jotunn has been recieved.
-                }
-                   
-                        
-                // do stuff based on dataLayoutVersion
-                guid = pkg.ReadString();
-                name = pkg.ReadString();
-                int major = pkg.ReadInt();
-                int minor = pkg.ReadInt();
-                int build = pkg.ReadInt();
-                version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
-                compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
-                versionStrictness = (VersionStrictness)pkg.ReadInt();
-            }
+                case 1:
+                    guid = pkg.ReadString();
+                    name = pkg.ReadString();
+                    int major = pkg.ReadInt();
+                    int minor = pkg.ReadInt();
+                    int build = pkg.ReadInt();
+                    version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
+                    compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
+                    versionStrictness = (VersionStrictness)pkg.ReadInt();
+                    break;
+                default:
+                    // This is a dataLayoutVersion that this version of Jotunn does not know how to handle.
+                    // Which means that data from a newer version of Jotunn has been received.
+                    // Currently unsure how best to handle this for backwards compatibility. 
+                    // This implementation simply leaves everything except for dataLayoutVersion as null.
+                    break;
+            }               
+            
         }
 
         /// <summary>
