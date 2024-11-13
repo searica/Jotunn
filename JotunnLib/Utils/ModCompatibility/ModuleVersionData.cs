@@ -85,8 +85,21 @@ namespace Jotunn.Utils
                     var numberOfModules = pkg.ReadInt();
                     while (numberOfModules > 0)
                     {
-                        Modules.Add(new ModModule(pkg, legacy: false));
-                        numberOfModules--;
+                        try
+                        {
+                            var modModule = new ModModule(pkg, legacy: false);
+                            Modules.Add(modModule);
+                            numberOfModules--;
+                        }
+                        catch (NotSupportedException ex)
+                        {
+                            this.IsSupportedDataLayout = false;
+                            Logger.LogError("Could not parse unsupported data layout from zPackage");
+                            Logger.LogError(ex.Message);
+
+                            // abort reading as the start of the next ModModule is unknown
+                            break;
+                        }
                     }
                 }
                 
