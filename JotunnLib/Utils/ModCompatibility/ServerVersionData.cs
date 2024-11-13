@@ -24,13 +24,13 @@ namespace Jotunn.Utils
         internal ServerVersionData(List<ModModule> versionData)
         {
             moduleVersionData = new ModuleVersionData(versionData);
-            moduleGUIDs = new HashSet<string>(moduleVersionData.Modules.Select(mod => mod.guid).ToList());
+            moduleGUIDs = new HashSet<string>(moduleVersionData.Modules.Where(x => x.guid != null).Select(x => x.guid).ToList());
         }
 
         internal ServerVersionData(System.Version valheimVersion, List<ModModule> versionData)
         {
             moduleVersionData = new ModuleVersionData(valheimVersion, versionData);
-            moduleGUIDs = new HashSet<string>(moduleVersionData.Modules.Select(mod => mod.guid).ToList());
+            moduleGUIDs = new HashSet<string>(moduleVersionData.Modules.Where(x => x.guid != null).Select(x => x.guid).ToList());
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Jotunn.Utils
         internal ServerVersionData(ZPackage pkg)
         {
             moduleVersionData = new ModuleVersionData(pkg);
-            moduleGUIDs = new HashSet<string>(moduleVersionData.Modules.Select(mod => mod.guid).ToList());
+            moduleGUIDs = new HashSet<string>(moduleVersionData.Modules.Where(x => x.guid != null).Select(x => x.guid).ToList());
         }
 
         internal bool IsValid()
