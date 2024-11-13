@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
+using Jotunn.Extensions;
 
 namespace Jotunn.Utils
 {
@@ -46,26 +48,35 @@ namespace Jotunn.Utils
         
             // Handle deserialization based on dataLayoutVersion
             dataLayoutVersion = pkg.ReadInt();
-            switch (dataLayoutVersion)
+
+            if (!this.IsSupportedDataLayout())
             {
-                case 1:
-                    guid = pkg.ReadString();
-                    name = pkg.ReadString();
-                    int major = pkg.ReadInt();
-                    int minor = pkg.ReadInt();
-                    int build = pkg.ReadInt();
-                    version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
-                    compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
-                    versionStrictness = (VersionStrictness)pkg.ReadInt();
-                    break;
-                default:
-                    // This is a dataLayoutVersion that this version of Jotunn does not know how to handle.
-                    // Which means that data from a newer version of Jotunn has been received.
-                    // Currently unsure how best to handle this for backwards compatibility. 
-                    // This implementation simply leaves everything except for dataLayoutVersion as null.
-                    break;
-            }               
-            
+                // This is a dataLayoutVersion that this version of Jotunn does not know how to handle.
+                // Which means that data from a newer version of Jotunn has been received and everything
+                // except dataLayoutVersion will be left as null.
+
+                // Populate current layout of ModModule with a fake newer version of Jotunn that will trigger an error.
+                //guid = Main.ModGuid;
+                //name = "Unknown. Jotunn is not the same version on client and server.";
+                //var verNums = Array.ConvertAll(Main.Version.Split('.'), int.Parse);
+                //version = new System.Version(verNums[0], verNums[1], verNums[2] + 1);
+                //var netWorkCompat = Main.Instance.GetNetworkCompatibilityAttribute();
+                //compatibilityLevel = netWorkCompat.EnforceModOnClients;
+                //versionStrictness = netWorkCompat.EnforceSameVersion;
+                return;
+            }
+
+            if (dataLayoutVersion == 1)
+            {
+                guid = pkg.ReadString();
+                name = pkg.ReadString();
+                int major = pkg.ReadInt();
+                int minor = pkg.ReadInt();
+                int build = pkg.ReadInt();
+                version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
+                compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
+                versionStrictness = (VersionStrictness)pkg.ReadInt();
+            }            
         }
 
         /// <summary>
