@@ -7,7 +7,7 @@ namespace Jotunn.Utils
     internal class ModModule
     {
         public const int CurrentDataLayoutVersion = 1;
-        public readonly HashSet<int> SupportedDataLayouts = new HashSet<int>(Enumerable.Range(1, CurrentDataLayoutVersion));
+        public static readonly HashSet<int> SupportedDataLayouts = new HashSet<int>(Enumerable.Range(1, CurrentDataLayoutVersion));
 
         /// <summary>
         ///     DataLayoutVersion indicates the version layout of data within the ZPkg. If equal to -1 then it is a legacy format.
