@@ -20,9 +20,9 @@ namespace Jotunn.Utils
             ModModule module = new ModModule("TestMod", "TestMod", v_1_0_5, CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor);
 
             ZPackage pkg = new ZPackage();
-            module.WriteToPackage(pkg);
+            module.WriteToPackage(pkg, legacy: false);
             pkg.SetPos(0);
-            ModModule result = new ModModule(pkg);
+            ModModule result = new ModModule(pkg, legacy: false);
 
             Assert.Equal(module.name, result.name);
             Assert.Equal(module.version, result.version);
@@ -63,7 +63,7 @@ namespace Jotunn.Utils
 
             foreach (var module in moduleData.Modules)
             {
-                module.WriteToPackage(pkg);
+                module.WriteToPackage(pkg, legacy: true);
             }
 
             pkg.SetPos(0);
