@@ -166,7 +166,7 @@ namespace Jotunn.Utils
 
             foreach (var mod in Modules)
             {
-                sb.AppendLine($"{mod.name} {mod.GetVersionString()} {mod.compatibilityLevel} {mod.versionStrictness}");
+                sb.AppendLine($"{mod.ModName} {mod.GetVersionString()} {mod.CompatibilityLevel} {mod.VersionStrictness}");
             }
 
             return sb.ToString();
@@ -195,7 +195,7 @@ namespace Jotunn.Utils
 
             foreach (var mod in Modules)
             {
-                sb.AppendLine($"{mod.ModName} {mod.GetVersionString()}" + (showEnforce ? $" {mod.compatibilityLevel} {mod.versionStrictness}" : ""));
+                sb.AppendLine($"{mod.ModName} {mod.GetVersionString()}" + (showEnforce ? $" {mod.CompatibilityLevel} {mod.VersionStrictness}" : ""));
             }
 
             return sb.ToString();
