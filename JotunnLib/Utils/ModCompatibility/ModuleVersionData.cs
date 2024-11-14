@@ -195,7 +195,7 @@ namespace Jotunn.Utils
 
             foreach (var mod in Modules)
             {
-                sb.AppendLine($"{mod.name} {mod.GetVersionString()}" + (showEnforce ? $" {mod.compatibilityLevel} {mod.versionStrictness}" : ""));
+                sb.AppendLine($"{mod.ModName} {mod.GetVersionString()}" + (showEnforce ? $" {mod.compatibilityLevel} {mod.versionStrictness}" : ""));
             }
 
             return sb.ToString();

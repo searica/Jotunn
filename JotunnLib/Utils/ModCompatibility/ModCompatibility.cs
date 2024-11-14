@@ -103,7 +103,7 @@ namespace Jotunn.Utils
                 // If there was no server version response, Jötunn is not installed. Cancel if we have mandatory mods
                 if (!LastServerVersionData.IsValid() && GetEnforcableMods().Any(x => x.IsNeededOnServer()))
                 {
-                    string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnServer()).Select(x => x.name));
+                    string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnServer()).Select(x => x.ModName));
                     Logger.LogWarning("Jötunn is not installed on the server. Client has mandatory mods, cancelling connection. " +
                                       "Mods that need to be installed on the server:" + Environment.NewLine + missingMods);
                     rpc.Invoke("Disconnect");
@@ -131,7 +131,7 @@ namespace Jotunn.Utils
                         // There is a mod, which needs to be client side too
                         // Lets disconnect the vanilla client with Incompatible Version message
 
-                        string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnClient()).Select(x => x.name));
+                        string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnClient()).Select(x => x.ModName));
                         Logger.LogWarning("Jötunn is not installed on the client. Server has mandatory mods, cancelling connection. " +
                                           "Mods that need to be installed on the client:" + Environment.NewLine + missingMods);
                         rpc.Invoke("Error", (int)ZNet.ConnectionStatus.ErrorVersion);
@@ -216,22 +216,22 @@ namespace Jotunn.Utils
             // Check server enforced mods
             foreach (var serverModule in FindNotInstalledMods(serverData, clientData))
             {
-                Logger.LogWarning($"Missing mod on client: {serverModule.name}");
+                Logger.LogWarning($"Missing mod on client: {serverModule.ModName}");
                 result = false;
             }
 
             // Check client enforced mods
             foreach (var clientModule in FindAdditionalMods(serverData, clientData))
             {
-                Logger.LogWarning($"Client loaded additional mod: {clientModule.name}");
+                Logger.LogWarning($"Client loaded additional mod: {clientModule.ModName}");
                 result = false;
             }
 
             // Check versions
             foreach (var serverModule in FindLowerVersionMods(serverData, clientData).Union(FindHigherVersionMods(serverData, clientData)))
             {
-                var clientModule = clientData.FindModule(serverModule.name);
-                Logger.LogWarning($"Mod version mismatch {serverModule.name}: Server {serverModule.version}, Client {clientModule.version}");
+                var clientModule = clientData.FindModule(serverModule.ModID);
+                Logger.LogWarning($"Mod version mismatch {serverModule.ModName}: Server {serverModule.Version}, Client {clientModule.Version}");
                 result = false;
             }
 
@@ -386,7 +386,7 @@ namespace Jotunn.Utils
 
             return ColoredLine(Color.red, "$mod_compat_header_missing_mods") +
                    ColoredLine(GUIManager.Instance.ValheimOrange, $"$mod_compat_missing_mods_description") +
-                   string.Join("", matchingServerMods.Select(serverModule => ColoredLine(Color.white, "$mod_compat_missing_mod", $"{serverModule.name}", $"{serverModule.version}"))) +
+                   string.Join("", matchingServerMods.Select(serverModule => ColoredLine(Color.white, "$mod_compat_missing_mod", $"{serverModule.ModName}", $"{serverModule.Version}"))) +
                    Environment.NewLine;
         }
 
@@ -400,7 +400,7 @@ namespace Jotunn.Utils
             }
 
             return ColoredLine(Color.red, "$mod_compat_header_update_needed") +
-                   string.Join("", matchingServerMods.Select((serverModule) => ColoredLine(Color.white, "$mod_compat_mod_update", serverModule.name, serverModule.GetVersionString()))) +
+                   string.Join("", matchingServerMods.Select((serverModule) => ColoredLine(Color.white, "$mod_compat_mod_update", serverModule.ModName, serverModule.GetVersionString()))) +
                    Environment.NewLine;
         }
 
@@ -414,7 +414,7 @@ namespace Jotunn.Utils
             }
 
             return ColoredLine(Color.red, "$mod_compat_header_downgrade_needed") +
-                   string.Join("", matchingServerMods.Select(serverModule => ColoredLine(Color.white, "$mod_compat_mod_downgrade", serverModule.name, serverModule.GetVersionString()))) +
+                   string.Join("", matchingServerMods.Select(serverModule => ColoredLine(Color.white, "$mod_compat_mod_downgrade", serverModule.ModName, serverModule.GetVersionString()))) +
                    Environment.NewLine;
         }
 
@@ -429,7 +429,7 @@ namespace Jotunn.Utils
 
             return ColoredLine(Color.red, "$mod_compat_header_additional_mods") +
                    ColoredLine(GUIManager.Instance.ValheimOrange, "$mod_compat_additional_mods_description") +
-                   string.Join("", matchingClientMods.Select(clientModule => ColoredLine(Color.white, "$mod_compat_additional_mod", clientModule.name, $"{clientModule.version}"))) +
+                   string.Join("", matchingClientMods.Select(clientModule => ColoredLine(Color.white, "$mod_compat_additional_mod", clientModule.ModName, $"{clientModule.Version}"))) +
                    Environment.NewLine;
         }
 
@@ -460,7 +460,7 @@ namespace Jotunn.Utils
         {
             return FindMods(serverData, clientData, (serverModule, clientModule) =>
             {
-                return clientModule != null && ModModule.IsLowerVersion(serverModule, clientModule, serverModule.versionStrictness);
+                return clientModule != null && ModModule.IsLowerVersion(serverModule, clientModule, serverModule.VersionStrictness);
             }).ToList();
         }
 
@@ -468,7 +468,7 @@ namespace Jotunn.Utils
         {
             return FindMods(serverData, clientData, (serverModule, clientModule) =>
             {
-                return clientModule != null && ModModule.IsLowerVersion(clientModule, serverModule, serverModule.versionStrictness);
+                return clientModule != null && ModModule.IsLowerVersion(clientModule, serverModule, serverModule.VersionStrictness);
             }).ToList();
         }
 
@@ -476,7 +476,7 @@ namespace Jotunn.Utils
         {
             foreach (ModModule baseModule in baseModules.Modules)
             {
-                ModModule additionalModule = additionalModules.FindModule(baseModule.name);
+                ModModule additionalModule = additionalModules.FindModule(baseModule.ModID);
 
                 if (predicate(baseModule, additionalModule))
                 {
