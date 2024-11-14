@@ -24,10 +24,10 @@ namespace Jotunn.Utils
             pkg.SetPos(0);
             ModModule result = new ModModule(pkg, legacy: false);
 
-            Assert.Equal(module.name, result.name);
-            Assert.Equal(module.version, result.version);
-            Assert.Equal(module.compatibilityLevel, result.compatibilityLevel);
-            Assert.Equal(module.versionStrictness, result.versionStrictness);
+            Assert.Equal(module.ModID, result.ModID);
+            Assert.Equal(module.Version, result.Version);
+            Assert.Equal(module.CompatibilityLevel, result.CompatibilityLevel);
+            Assert.Equal(module.VersionStrictness, result.VersionStrictness);
         }
 
         [Fact]
