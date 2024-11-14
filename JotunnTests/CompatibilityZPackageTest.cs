@@ -25,6 +25,7 @@ namespace Jotunn.Utils
             ModModule result = new ModModule(pkg, legacy: false);
 
             Assert.Equal(module.ModID, result.ModID);
+            Assert.Equal(module.ModName, result.ModName);
             Assert.Equal(module.Version, result.Version);
             Assert.Equal(module.CompatibilityLevel, result.CompatibilityLevel);
             Assert.Equal(module.VersionStrictness, result.VersionStrictness);
