@@ -15,16 +15,50 @@ namespace Jotunn.Utils
         /// <summary>
         ///     DataLayoutVersion indicates the version layout of data within the ZPkg. If equal to 0 then it is a legacy format.
         /// </summary>
-        public int dataLayoutVersion;
-        public string guid;
-        public string name;
-        public System.Version version;
-        public CompatibilityLevel compatibilityLevel;
-        public VersionStrictness versionStrictness;
+        public int DataLayoutVersion { get; private set; }
 
+        private string guid;
+        private string name;
+        private System.Version version;
+        private CompatibilityLevel compatibilityLevel;
+        private VersionStrictness versionStrictness;
+
+        /// <summary>
+        ///     Identifier for mod based on DataLayoutVersion. 
+        ///     For legacy layout returns mod name, otherwise returns mod GUID. 
+        /// </summary>
+        public string ModID
+        {
+            get
+            {
+                return DataLayoutVersion == LegacyDataLayoutVersion ? name : guid;
+            }   
+        }
+
+        /// <summary>
+        ///     Friendly version of mod name.
+        /// </summary>
+        public string ModName { get { return name; } }
+
+        /// <summary>
+        ///     Version data for mod.
+        /// </summary>
+        public System.Version Version { get { return version; } }
+
+        /// <summary>
+        ///     Compatibility level of the mod.
+        /// </summary>
+        public CompatibilityLevel CompatibilityLevel { get { return compatibilityLevel; } }
+
+        /// <summary>
+        ///     Version strictness level of the mod.
+        /// </summary>
+        public VersionStrictness VersionStrictness { get { return VersionStrictness; } }
+
+        
         public ModModule(string guid, string name, System.Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
         {
-            this.dataLayoutVersion = CurrentDataLayoutVersion;
+            this.DataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = guid;
             this.name = name;
             this.version = version;
@@ -36,7 +70,7 @@ namespace Jotunn.Utils
         {
             if (legacy)
             {
-                dataLayoutVersion = LegacyDataLayoutVersion;
+                DataLayoutVersion = LegacyDataLayoutVersion;
                 int major = pkg.ReadInt();
                 int minor = pkg.ReadInt();
                 int build = pkg.ReadInt();
@@ -47,15 +81,15 @@ namespace Jotunn.Utils
             }
         
             // Handle deserialization based on dataLayoutVersion
-            dataLayoutVersion = pkg.ReadInt();
+            DataLayoutVersion = pkg.ReadInt();
 
             if (!this.IsSupportedDataLayout())
             {
                 // Data from a newer version of Jotunn has been received and cannot be read.
-                throw new NotSupportedException($"{dataLayoutVersion} is not a supported data layout version.");
+                throw new NotSupportedException($"{DataLayoutVersion} is not a supported data layout version.");
             }
 
-            if (dataLayoutVersion == 1)
+            if (DataLayoutVersion == 1)
             {
                 guid = pkg.ReadString();
                 name = pkg.ReadString();
@@ -86,7 +120,7 @@ namespace Jotunn.Utils
                 return;
             }
 
-            pkg.Write(dataLayoutVersion);
+            pkg.Write(DataLayoutVersion);
             pkg.Write(guid);
             pkg.Write(name);
             pkg.Write(version.Major);
@@ -98,7 +132,7 @@ namespace Jotunn.Utils
 
         public ModModule(BepInPlugin plugin, NetworkCompatibilityAttribute networkAttribute)
         {
-            this.dataLayoutVersion = CurrentDataLayoutVersion;
+            this.DataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = plugin.GUID;
             this.name = plugin.Name;
             this.version = plugin.Version;
@@ -108,7 +142,7 @@ namespace Jotunn.Utils
 
         public ModModule(BepInPlugin plugin)
         {
-            this.dataLayoutVersion = CurrentDataLayoutVersion;
+            this.DataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = plugin.GUID;
             this.name = plugin.Name;
             this.version = plugin.Version;
@@ -175,7 +209,7 @@ namespace Jotunn.Utils
         /// <returns></returns>
         public bool IsSupportedDataLayout()
         {
-            return SupportedDataLayouts.Contains(dataLayoutVersion);
+            return SupportedDataLayouts.Contains(DataLayoutVersion);
         }
 
         /// <summary>
