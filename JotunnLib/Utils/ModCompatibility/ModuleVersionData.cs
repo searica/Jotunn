@@ -201,14 +201,14 @@ namespace Jotunn.Utils
             return sb.ToString();
         }
 
-        public ModModule FindModule(string name)
+        public ModModule FindModule(string modID)
         {
-            return Modules.FirstOrDefault(x => x.name == name);
+            return Modules.FirstOrDefault(x => x.ModID == modID);
         }
 
-        public bool HasModule(string name)
+        public bool HasModule(string modID)
         {
-            return FindModule(name) != null;
+            return FindModule(modID) != null;
         }
 
         private static string GetVersionString()
