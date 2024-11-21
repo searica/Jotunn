@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using BepInEx;
 using HarmonyLib;
 using Jotunn.Extensions;
@@ -22,7 +20,6 @@ namespace Jotunn.Utils
         /// <summary>
         ///     Stores the last server message.
         /// </summary>
-        //private static ZPackage LastServerVersion;
         private static ServerVersionData LastServerVersionData = new ServerVersionData();
 
         private static readonly Dictionary<string, ZPackage> ClientVersions = new Dictionary<string, ZPackage>();
@@ -38,7 +35,6 @@ namespace Jotunn.Utils
             return IsModuleOnServer(Main.ModGuid);
         }
 
-
         public static bool IsModuleOnServer(BaseUnityPlugin plugin)
         {
             return IsModuleOnServer(plugin.Info.Metadata.GUID);
@@ -48,16 +44,12 @@ namespace Jotunn.Utils
         {
             if (ZNet.instance && ZNet.instance.IsClientInstance())
             {
-                if (LastServerVersionData.IsValid())
-                {
-                    return LastServerVersionData.moduleGUIDs.Contains(modGUID);
-                }
-                return false;
-
+                return LastServerVersionData.IsValid() && LastServerVersionData.moduleGUIDs.Contains(modGUID);
             }
+
             return true;
         }
-       
+
         [HarmonyPatch(typeof(ZNet), nameof(ZNet.OnNewConnection)), HarmonyPrefix, HarmonyPriority(Priority.First)]
         private static void ZNet_OnNewConnection(ZNet __instance, ZNetPeer peer)
         {
@@ -207,6 +199,7 @@ namespace Jotunn.Utils
                 Logger.LogWarning($"Jotunn version on client is higher than server version: {Main.Version}");
                 result = false;
             }
+
             if (!serverData.IsSupportedDataLayout)
             {
                 Logger.LogWarning($"Jotunn version on server is higher than client version: {Main.Version}");
@@ -340,11 +333,12 @@ namespace Jotunn.Utils
             {
                 return ColoredLine(Color.red, $"Jotunn version on client is higher than server version: {Main.Version}");
             }
+
             if (!serverData.IsSupportedDataLayout)
             {
                 return ColoredLine(Color.red, $"Jotunn version on server is higher than client version: {Main.Version}");
             }
-            
+
             return string.Empty;
         }
 

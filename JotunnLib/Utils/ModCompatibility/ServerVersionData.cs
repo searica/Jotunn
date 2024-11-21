@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Jotunn.Utils
 {
     internal class ServerVersionData
     {
         public ModuleVersionData moduleVersionData { get; set; }
-        //public HashSet<string> moduleNames { get; set; }
         public HashSet<string> moduleGUIDs { get; set; }
 
         /// <summary>

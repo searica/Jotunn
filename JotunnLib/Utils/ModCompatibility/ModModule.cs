@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
-using Jotunn.Extensions;
 
 namespace Jotunn.Utils
 {
@@ -18,10 +17,6 @@ namespace Jotunn.Utils
         public int DataLayoutVersion { get; private set; }
 
         private string guid;
-        private string name;
-        private System.Version version;
-        private CompatibilityLevel compatibilityLevel;
-        private VersionStrictness versionStrictness;
 
         /// <summary>
         ///     Identifier for mod based on DataLayoutVersion. 
@@ -31,39 +26,38 @@ namespace Jotunn.Utils
         {
             get
             {
-                return DataLayoutVersion == LegacyDataLayoutVersion ? name : guid;
+                return DataLayoutVersion == LegacyDataLayoutVersion ? ModName : guid;
             }   
         }
 
         /// <summary>
         ///     Friendly version of mod name.
         /// </summary>
-        public string ModName { get { return name; } }
+        public string ModName { get; }
 
         /// <summary>
         ///     Version data for mod.
         /// </summary>
-        public System.Version Version { get { return version; } }
+        public System.Version Version { get; }
 
         /// <summary>
         ///     Compatibility level of the mod.
         /// </summary>
-        public CompatibilityLevel CompatibilityLevel { get { return compatibilityLevel; } }
+        public CompatibilityLevel CompatibilityLevel { get; }
 
         /// <summary>
         ///     Version strictness level of the mod.
         /// </summary>
-        public VersionStrictness VersionStrictness { get { return VersionStrictness; } }
+        public VersionStrictness VersionStrictness { get; }
 
-        
         public ModModule(string guid, string name, System.Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
         {
             this.DataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = guid;
-            this.name = name;
-            this.version = version;
-            this.compatibilityLevel = compatibilityLevel;
-            this.versionStrictness = versionStrictness;
+            this.ModName = name;
+            this.Version = version;
+            this.CompatibilityLevel = compatibilityLevel;
+            this.VersionStrictness = versionStrictness;
         }
 
         public ModModule(ZPackage pkg, bool legacy)
@@ -74,9 +68,9 @@ namespace Jotunn.Utils
                 int major = pkg.ReadInt();
                 int minor = pkg.ReadInt();
                 int build = pkg.ReadInt();
-                version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
-                compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
-                versionStrictness = (VersionStrictness)pkg.ReadInt();
+                Version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
+                CompatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
+                VersionStrictness = (VersionStrictness)pkg.ReadInt();
                 return;
             }
         
@@ -92,13 +86,13 @@ namespace Jotunn.Utils
             if (DataLayoutVersion == 1)
             {
                 guid = pkg.ReadString();
-                name = pkg.ReadString();
+                ModName = pkg.ReadString();
                 int major = pkg.ReadInt();
                 int minor = pkg.ReadInt();
                 int build = pkg.ReadInt();
-                version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
-                compatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
-                versionStrictness = (VersionStrictness)pkg.ReadInt();
+                Version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
+                CompatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
+                VersionStrictness = (VersionStrictness)pkg.ReadInt();
             }            
         }
 
@@ -111,54 +105,54 @@ namespace Jotunn.Utils
         {
             if (legacy)
             {
-                pkg.Write(name);
-                pkg.Write(version.Major);
-                pkg.Write(version.Minor);
-                pkg.Write(version.Build);
-                pkg.Write((int)compatibilityLevel);
-                pkg.Write((int)versionStrictness);
+                pkg.Write(ModName);
+                pkg.Write(Version.Major);
+                pkg.Write(Version.Minor);
+                pkg.Write(Version.Build);
+                pkg.Write((int)CompatibilityLevel);
+                pkg.Write((int)VersionStrictness);
                 return;
             }
 
             pkg.Write(DataLayoutVersion);
             pkg.Write(guid);
-            pkg.Write(name);
-            pkg.Write(version.Major);
-            pkg.Write(version.Minor);
-            pkg.Write(version.Build);
-            pkg.Write((int)compatibilityLevel);
-            pkg.Write((int)versionStrictness);
+            pkg.Write(ModName);
+            pkg.Write(Version.Major);
+            pkg.Write(Version.Minor);
+            pkg.Write(Version.Build);
+            pkg.Write((int)CompatibilityLevel);
+            pkg.Write((int)VersionStrictness);
         }
 
         public ModModule(BepInPlugin plugin, NetworkCompatibilityAttribute networkAttribute)
         {
             this.DataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = plugin.GUID;
-            this.name = plugin.Name;
-            this.version = plugin.Version;
-            this.compatibilityLevel = networkAttribute.EnforceModOnClients;
-            this.versionStrictness = networkAttribute.EnforceSameVersion;
+            this.ModName = plugin.Name;
+            this.Version = plugin.Version;
+            this.CompatibilityLevel = networkAttribute.EnforceModOnClients;
+            this.VersionStrictness = networkAttribute.EnforceSameVersion;
         }
 
         public ModModule(BepInPlugin plugin)
         {
             this.DataLayoutVersion = CurrentDataLayoutVersion;
             this.guid = plugin.GUID;
-            this.name = plugin.Name;
-            this.version = plugin.Version;
-            this.compatibilityLevel = CompatibilityLevel.NotEnforced;
-            this.versionStrictness = VersionStrictness.None;
+            this.ModName = plugin.Name;
+            this.Version = plugin.Version;
+            this.CompatibilityLevel = CompatibilityLevel.NotEnforced;
+            this.VersionStrictness = VersionStrictness.None;
         }
 
         public string GetVersionString()
         {
-            if (version.Build >= 0)
+            if (Version.Build >= 0)
             {
-                return $"{version.Major}.{version.Minor}.{version.Build}";
+                return $"{Version.Major}.{Version.Minor}.{Version.Build}";
             }
             else
             {
-                return $"{version.Major}.{version.Minor}";
+                return $"{Version.Major}.{Version.Minor}";
             }
         }
 
@@ -168,7 +162,7 @@ namespace Jotunn.Utils
         /// <returns></returns>
         public bool IsNeededOnServer()
         {
-            return compatibilityLevel == CompatibilityLevel.EveryoneMustHaveMod || compatibilityLevel == CompatibilityLevel.ServerMustHaveMod;
+            return CompatibilityLevel == CompatibilityLevel.EveryoneMustHaveMod || CompatibilityLevel == CompatibilityLevel.ServerMustHaveMod;
         }
 
         /// <summary>
@@ -177,7 +171,7 @@ namespace Jotunn.Utils
         /// <returns></returns>
         public bool IsNeededOnClient()
         {
-            return compatibilityLevel == CompatibilityLevel.EveryoneMustHaveMod || compatibilityLevel == CompatibilityLevel.ClientMustHaveMod;
+            return CompatibilityLevel == CompatibilityLevel.EveryoneMustHaveMod || CompatibilityLevel == CompatibilityLevel.ClientMustHaveMod;
         }
 
         /// <summary>
@@ -187,7 +181,7 @@ namespace Jotunn.Utils
         public bool IsNotEnforced()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            return compatibilityLevel == CompatibilityLevel.NotEnforced || compatibilityLevel == CompatibilityLevel.NoNeedForSync;
+            return CompatibilityLevel == CompatibilityLevel.NotEnforced || CompatibilityLevel == CompatibilityLevel.NoNeedForSync;
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
@@ -198,7 +192,7 @@ namespace Jotunn.Utils
         public bool OnlyVersionCheck()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            return compatibilityLevel == CompatibilityLevel.OnlySyncWhenInstalled || compatibilityLevel == CompatibilityLevel.VersionCheckOnly;
+            return CompatibilityLevel == CompatibilityLevel.OnlySyncWhenInstalled || CompatibilityLevel == CompatibilityLevel.VersionCheckOnly;
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
@@ -226,12 +220,12 @@ namespace Jotunn.Utils
                 return false;
             }
 
-            bool majorSmaller = compareModule.version.Major < baseModule.version.Major;
-            bool minorSmaller = compareModule.version.Minor < baseModule.version.Minor;
-            bool patchSmaller = compareModule.version.Build < baseModule.version.Build;
+            bool majorSmaller = compareModule.Version.Major < baseModule.Version.Major;
+            bool minorSmaller = compareModule.Version.Minor < baseModule.Version.Minor;
+            bool patchSmaller = compareModule.Version.Build < baseModule.Version.Build;
 
-            bool majorEqual = compareModule.version.Major == baseModule.version.Major;
-            bool minorEqual = compareModule.version.Minor == baseModule.version.Minor;
+            bool majorEqual = compareModule.Version.Major == baseModule.Version.Major;
+            bool minorEqual = compareModule.Version.Minor == baseModule.Version.Minor;
 
             if (strictness >= VersionStrictness.Major && majorSmaller)
             {

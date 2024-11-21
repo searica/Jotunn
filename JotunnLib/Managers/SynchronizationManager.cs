@@ -473,11 +473,12 @@ namespace Jotunn.Managers
         {
             var loadedPlugins = BepInExUtils.GetDependentPlugins(true);
 
-            foreach (BaseUnityPlugin plugin in loadedPlugins.Values)
+            foreach (var plugin in loadedPlugins.Values)
             {
                 yield return plugin.Config;
             }
-            foreach (ConfigFile customConfigFile in CustomConfigs.Values)
+
+            foreach (var customConfigFile in CustomConfigs.Values)
             {
                 yield return customConfigFile;
             }
@@ -495,10 +496,12 @@ namespace Jotunn.Managers
             {
                 return false;
             }
+
             if (!BepInExUtils.GetDependentPlugins().TryGetValue(pluginGUID, out var plugin))
             {
                 return false;
             }
+
             return ShouldManageConfig(plugin);
         }
 
@@ -520,11 +523,7 @@ namespace Jotunn.Managers
             // not been set for the mod then return true to mimic current behaviour and 
             // maintain backwards compatibility.
             SynchronizationModeAttribute syncMode = plugin.GetSynchronizationModeAttribute();
-            if (syncMode == null || syncMode.ShouldAlwaysEnforceAdminOnly())
-            {
-                return true;
-            }
-            return false;
+            return syncMode == null || syncMode.ShouldAlwaysEnforceAdminOnly();
         }
 
         private static string GetFileIdentifier(ConfigFile config)
