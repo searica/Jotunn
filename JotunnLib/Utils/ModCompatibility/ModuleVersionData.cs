@@ -120,16 +120,8 @@ namespace Jotunn.Utils
 
                     // overwrite Modules to replace legacy ModModule formatted data with current ModModule formatted data
                     Modules = modModules;
-                }
-
-                // Handle tracking ModModule data layouts 
-                if (Modules.Any(x => x.DataLayoutVersion != Modules.FirstOrDefault().DataLayoutVersion))
-                {
-                    ModModuleDataLayout = -1;
-                    throw new NotSupportedException("DataVersionLayout is not the same for all ModModule instances. ModModuleDataLayout set to -1.");
-                }
-                ModModuleDataLayout = Modules.FirstOrDefault().DataLayoutVersion;
-                
+                    ModModuleDataLayout = GetModModuleDataLayoutVersion(Modules);
+                }               
             }
             catch (Exception ex)
             {
@@ -242,6 +234,16 @@ namespace Jotunn.Utils
         {
             // ServerCharacters replaces the version string on the server but not client and does it's own checks afterwards
             return Version.GetVersionString().Replace("-ServerCharacters", "");
+        }
+
+        private static int GetModModuleDataLayoutVersion(List<ModModule> modules)
+        {
+            // Handle tracking ModModule data layouts 
+            if (modules.Any(x => x.DataLayoutVersion != modules.FirstOrDefault().DataLayoutVersion))
+            {
+                throw new NotSupportedException("DataVersionLayout is not the same for all ModModule instances.");
+            }
+            return modules.FirstOrDefault().DataLayoutVersion;
         }
     }
 }
