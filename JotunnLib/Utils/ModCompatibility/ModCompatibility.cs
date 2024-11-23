@@ -217,24 +217,23 @@ namespace Jotunn.Utils
                 return true;
             }
 
-            // Check for compatible ModModule data layout versions
-            if (serverData.ModModuleDataLayout != clientData.ModModuleDataLayout)
-            {
-                Logger.LogWarning("Jotunn version on server and client are not compatible.");
-                return false;
-            }
-
             // Check for supported ModModule data layout
-            // might be able to get read of this check as it
-            // would only ever trigger if both server and client had ModModuleDataLayout == -1
             if (!clientData.IsSupportedDataLayout)
             {
                 Logger.LogWarning($"Jotunn version on client is higher than server version: {Main.Version}");
                 return false;
             }
+
             if (!serverData.IsSupportedDataLayout)
             {
                 Logger.LogWarning($"Jotunn version on server is higher than client version: {Main.Version}");
+                return false;
+            }
+
+            // Check for compatible ModModule data layout versions
+            if (serverData.ModModuleDataLayout != clientData.ModModuleDataLayout)
+            {
+                Logger.LogWarning("Jotunn versions on server and client are not compatible.");
                 return false;
             }
 
