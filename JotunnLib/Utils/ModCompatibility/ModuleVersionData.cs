@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -79,7 +79,7 @@ namespace Jotunn.Utils
                 // Get current data layout ModModules if present
                 if (pkg.m_reader.BaseStream.Position != pkg.m_reader.BaseStream.Length)
                 {
-                    Modules.Clear(); // Discard legacy modules
+                    var modModules = new List<ModModule>();
 
                     // Read and store the relevant ModModules
                     var numberOfModules = pkg.ReadInt();
@@ -88,7 +88,7 @@ namespace Jotunn.Utils
                         try
                         {
                             var modModule = new ModModule(pkg, legacy: false);
-                            Modules.Add(modModule);
+                            modModules.Add(modModule);
                             numberOfModules--;
                         }
                         catch (NotSupportedException ex)
@@ -101,6 +101,9 @@ namespace Jotunn.Utils
                             break;
                         }
                     }
+
+                    // overwrite Modules to replace legacy ModModule formatted data with current ModModule formatted data
+                    Modules = modModules;
                 }
                 
             }
