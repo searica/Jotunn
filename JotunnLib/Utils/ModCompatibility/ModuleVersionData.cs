@@ -49,6 +49,7 @@ namespace Jotunn.Utils
             VersionString = GetVersionString();
             NetworkVersion = GameVersions.NetworkVersion;
             Modules = new List<ModModule>(versionData);
+            ModModuleDataLayout = GetModModuleDataLayoutVersion(Modules);
         }
 
         internal ModuleVersionData(System.Version valheimVersion, List<ModModule> versionData)
@@ -57,6 +58,7 @@ namespace Jotunn.Utils
             VersionString = GetVersionString();
             NetworkVersion = GameVersions.NetworkVersion;
             Modules = new List<ModModule>(versionData);
+            ModModuleDataLayout = GetModModuleDataLayoutVersion(Modules);
         }
 
         /// <summary>
