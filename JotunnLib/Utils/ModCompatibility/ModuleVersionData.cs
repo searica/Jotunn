@@ -126,7 +126,7 @@ namespace Jotunn.Utils
                 if (Modules.Any(x => x.DataLayoutVersion != Modules.FirstOrDefault().DataLayoutVersion))
                 {
                     ModModuleDataLayout = -1;
-                    throw new NotSupportedException("DataVersionLayout is not the same of all ModModule instances. ModModuleDataLayout set to -1.");
+                    throw new NotSupportedException("DataVersionLayout is not the same for all ModModule instances. ModModuleDataLayout set to -1.");
                 }
                 ModModuleDataLayout = Modules.FirstOrDefault().DataLayoutVersion;
                 
