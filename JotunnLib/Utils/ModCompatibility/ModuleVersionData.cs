@@ -24,6 +24,9 @@ namespace Jotunn.Utils
 
         public uint NetworkVersion { get; internal set; }
 
+        /// <summary>
+        ///     Flag indicating if the ModModule was in a layout that can be deserialized. 
+        /// </summary>
         public bool IsSupportedDataLayout { get; private set; } = true;
 
         /// <summary>
