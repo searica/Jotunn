@@ -24,26 +24,20 @@ namespace Jotunn.Utils
 
         public uint NetworkVersion { get; internal set; }
 
-        private bool? isLegacyDataLayout;
         public int ModModuleDataLayout { get; private set; }
 
 
         /// <summary>
-        ///     Whether any of the ModModule instances in Modules use the legacy data layout.
+        ///     Whether all the ModModule instances were formatted in a supported 
+        ///     data layout and all instances had the same data layout. 
         /// </summary>
-        public bool IsLegacyDataLayout
+        public bool IsSupportedDataLayout
         {
             get
             {
-                isLegacyDataLayout ??= Modules.Where(x => x.IsLegacyDataLayout).Any();
-                return isLegacyDataLayout.Value;
+                return ModModule.SupportedDataLayouts.Contains(ModModuleDataLayout);
             }
-        } 
-
-        /// <summary>
-        ///     Whether all the ModModule instances were in a layout that can be deserialized. 
-        /// </summary>
-        public bool IsSupportedDataLayout { get; private set; } = true;
+        }
 
         /// <summary>
         ///     Create from module data
