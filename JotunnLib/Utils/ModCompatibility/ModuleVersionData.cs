@@ -25,6 +25,8 @@ namespace Jotunn.Utils
         public uint NetworkVersion { get; internal set; }
 
         private bool? isLegacyDataLayout;
+        public int ModModuleDataLayout { get; private set; }
+
 
         /// <summary>
         ///     Whether any of the ModModule instances in Modules use the legacy data layout.
@@ -100,6 +102,8 @@ namespace Jotunn.Utils
 
                     // Read and store the relevant ModModules
                     var numberOfModules = pkg.ReadInt();
+                    var currentPos = pkg.GetPos();
+
                     while (numberOfModules > 0)
                     {
                         try
@@ -110,8 +114,9 @@ namespace Jotunn.Utils
                         }
                         catch (NotSupportedException ex)
                         {
-                            this.IsSupportedDataLayout = false;
-                            Logger.LogError("Could not parse unsupported data layout from zPackage");
+                            pkg.SetPos(currentPos);  // get data layout version
+                            this.ModModuleDataLayout = pkg.ReadInt(); 
+                            Logger.LogError($"Could not parse unsupported data layout version {ModModuleDataLayout} from zPackage");
                             Logger.LogError(ex.Message);
 
                             // abort reading as the start of the next ModModule is unknown
@@ -122,6 +127,14 @@ namespace Jotunn.Utils
                     // overwrite Modules to replace legacy ModModule formatted data with current ModModule formatted data
                     Modules = modModules;
                 }
+
+                // Handle tracking ModModule data layouts 
+                if (Modules.Any(x => x.DataLayoutVersion != Modules.FirstOrDefault().DataLayoutVersion))
+                {
+                    ModModuleDataLayout = -1;
+                    throw new NotSupportedException("DataVersionLayout is not the same of all ModModule instances. ModModuleDataLayout set to -1.");
+                }
+                ModModuleDataLayout = Modules.FirstOrDefault().DataLayoutVersion;
                 
             }
             catch (Exception ex)
