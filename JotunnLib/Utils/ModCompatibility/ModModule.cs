@@ -50,6 +50,17 @@ namespace Jotunn.Utils
         /// </summary>
         public VersionStrictness VersionStrictness { get; }
 
+        /// <summary>
+        ///     Whether the data layout is a legacy format or not.
+        /// </summary>
+        public bool IsLegacyDataLayout
+        {
+            get
+            {
+                return CurrentDataLayoutVersion == LegacyDataLayoutVersion;
+            }
+        }
+
         public ModModule(string guid, string name, System.Version version, CompatibilityLevel compatibilityLevel, VersionStrictness versionStrictness)
         {
             this.DataLayoutVersion = CurrentDataLayoutVersion;
