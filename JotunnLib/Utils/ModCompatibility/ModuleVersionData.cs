@@ -24,8 +24,22 @@ namespace Jotunn.Utils
 
         public uint NetworkVersion { get; internal set; }
 
+        private bool? isLegacyDataLayout;
+
         /// <summary>
-        ///     Flag indicating if the ModModule was in a layout that can be deserialized. 
+        ///     Whether any of the ModModule instances in Modules use the legacy data layout.
+        /// </summary>
+        public bool IsLegacyDataLayout
+        {
+            get
+            {
+                isLegacyDataLayout ??= Modules.Where(x => x.IsLegacyDataLayout).Any();
+                return isLegacyDataLayout.Value;
+            }
+        } 
+
+        /// <summary>
+        ///     Whether all the ModModule instances were in a layout that can be deserialized. 
         /// </summary>
         public bool IsSupportedDataLayout { get; private set; } = true;
 
