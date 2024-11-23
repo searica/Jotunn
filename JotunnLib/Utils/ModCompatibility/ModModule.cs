@@ -9,7 +9,7 @@ namespace Jotunn.Utils
     {
         public const int LegacyDataLayoutVersion = 0;
         public const int CurrentDataLayoutVersion = 1;
-        public static readonly HashSet<int> SupportedDataLayouts = new HashSet<int>(Enumerable.Range(LegacyDataLayoutVersion, CurrentDataLayoutVersion));
+        public static readonly HashSet<int> SupportedDataLayouts = new HashSet<int> { LegacyDataLayoutVersion, CurrentDataLayoutVersion };
 
         /// <summary>
         ///     DataLayoutVersion indicates the version layout of data within the ZPkg. If equal to 0 then it is a legacy format.
@@ -65,6 +65,7 @@ namespace Jotunn.Utils
             if (legacy)
             {
                 DataLayoutVersion = LegacyDataLayoutVersion;
+                ModName = pkg.ReadString();
                 int major = pkg.ReadInt();
                 int minor = pkg.ReadInt();
                 int build = pkg.ReadInt();
