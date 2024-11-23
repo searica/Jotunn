@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using Jotunn.Extensions;
 using Jotunn.Managers;
@@ -30,24 +31,49 @@ namespace Jotunn.Utils
             Main.Harmony.PatchAll(typeof(ModCompatibility));
         }
 
-        public static bool IsJotunnOnServer()
-        {
-            return IsModuleOnServer(Main.ModGuid);
-        }
-
+        /// <summary>
+        ///     Check if a mod is installed and loaded on the server.<br/>
+        ///     Can be called from both client and server.
+        /// </summary>
+        /// <param name="plugin">BepInEx mod to check</param>
+        /// <returns>true if the mod is loaded on the server.<br/>false if the mod is not loaded on the server or no server connection is established</returns>
         public static bool IsModuleOnServer(BaseUnityPlugin plugin)
         {
             return IsModuleOnServer(plugin.Info.Metadata.GUID);
         }
 
+        /// <summary>
+        ///     Check if a mod is installed and loaded on the server.<br/>
+        ///     Can be called from both client and server.
+        /// </summary>
+        /// <param name="modGUID">BepInEx mod GUID to check</param>
+        /// <returns>true if the mod is loaded on the server.<br/>false if the mod is not loaded on the server or no server connection is established</returns>
         public static bool IsModuleOnServer(string modGUID)
         {
-            if (ZNet.instance && ZNet.instance.IsClientInstance())
+            if (ZNet.instance)
             {
-                return LastServerVersionData.IsValid() && LastServerVersionData.moduleGUIDs.Contains(modGUID);
+                if (ZNet.instance.IsClientInstance())
+                {
+                    return LastServerVersionData.IsValid() && LastServerVersionData.moduleGUIDs.Contains(modGUID);
+                }
+
+                if (ZNet.instance.IsServer())
+                {
+                    return Chainloader.PluginInfos.ContainsKey(modGUID);
+                }
             }
 
-            return true;
+            return false;
+        }
+
+        /// <summary>
+        ///     Check if Jotunn is installed and loaded on the server.<br/>
+        ///     Can be called from both client and server.
+        /// </summary>
+        /// <returns>true if Jotunn is loaded on the server.<br/>false if Jotunn is not loaded on the server or no server connection is established</returns>
+        public static bool IsJotunnOnServer()
+        {
+            return IsModuleOnServer(Main.ModGuid);
         }
 
         [HarmonyPatch(typeof(ZNet), nameof(ZNet.OnNewConnection)), HarmonyPrefix, HarmonyPriority(Priority.First)]
