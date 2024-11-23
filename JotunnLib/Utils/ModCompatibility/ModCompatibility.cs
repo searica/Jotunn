@@ -350,9 +350,15 @@ namespace Jotunn.Utils
         /// <returns></returns>
         private static string CreateErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
         {
-        
-            return CreateModModuleLayoutErrorMessage(serverData, clientData)+
-                   CreateVanillaVersionErrorMessage(serverData, clientData) +
+            string dataLayoutErrMsg = CreateModModuleLayoutErrorMessage(serverData, clientData);
+            if (!string.IsNullOrEmpty(dataLayoutErrMsg))
+            {
+                return CreateVanillaVersionErrorMessage(serverData, clientData) +
+                       dataLayoutErrMsg +
+                       CreateFurtherStepsMessage();
+            }
+
+            return CreateVanillaVersionErrorMessage(serverData, clientData) +
                    CreateNotInstalledErrorMessage(serverData, clientData) +
                    CreateLowerVersionErrorMessage(serverData, clientData) +
                    CreateHigherVersionErrorMessage(serverData, clientData) +
@@ -362,6 +368,7 @@ namespace Jotunn.Utils
 
         private static string CreateModModuleLayoutErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
         {
+
             if (!clientData.IsSupportedDataLayout)
             {
                 return ColoredLine(Color.red, $"Jotunn version on client is higher than server version: {Main.Version}");
@@ -370,6 +377,11 @@ namespace Jotunn.Utils
             if (!serverData.IsSupportedDataLayout)
             {
                 return ColoredLine(Color.red, $"Jotunn version on server is higher than client version: {Main.Version}");
+            }
+
+            if (serverData.ModModuleDataLayout != clientData.ModModuleDataLayout)
+            {
+                return ColoredLine(Color.red, "Jotunn versions on server and client are not compatible.");
             }
 
             return string.Empty;
