@@ -256,7 +256,7 @@ namespace Jotunn.Utils
             // Check versions
             foreach (var serverModule in FindLowerVersionMods(serverData, clientData).Union(FindHigherVersionMods(serverData, clientData)))
             {
-                var clientModule = clientData.FindModule(serverModule.ModID);
+                var clientModule = clientData.FindModule(serverModule);
                 Logger.LogWarning($"Mod version mismatch {serverModule.ModName}: Server {serverModule.Version}, Client {clientModule.Version}");
                 result = false;
             }
@@ -515,7 +515,7 @@ namespace Jotunn.Utils
         {
             foreach (ModModule baseModule in baseModules.Modules)
             {
-                ModModule additionalModule = additionalModules.FindModule(baseModule.ModID);
+                ModModule additionalModule = additionalModules.FindModule(baseModule);
 
                 if (predicate(baseModule, additionalModule))
                 {
