@@ -217,27 +217,26 @@ namespace Jotunn.Utils
                 return true;
             }
 
+            // Check for compatible ModModule data layout versions
+            //if (serverData.ModModuleDataLayout != clientData.ModModuleDataLayout)
+            //{
+            //    Logger.LogWarning("Jotunn versions on server and client are not compatible.");
+            //    return false;
+            //}
+
+            bool result = true;
+
             // Check for supported ModModule data layout
             if (!clientData.IsSupportedDataLayout)
             {
                 Logger.LogWarning($"Jotunn version on client is higher than server version: {Main.Version}");
-                return false;
+                result = false;
             }
-
             if (!serverData.IsSupportedDataLayout)
             {
                 Logger.LogWarning($"Jotunn version on server is higher than client version: {Main.Version}");
-                return false;
+                result = false;
             }
-
-            // Check for compatible ModModule data layout versions
-            if (serverData.ModModuleDataLayout != clientData.ModModuleDataLayout)
-            {
-                Logger.LogWarning("Jotunn versions on server and client are not compatible.");
-                return false;
-            }
-
-            bool result = true;
 
             // Check server enforced mods
             foreach (var serverModule in FindNotInstalledMods(serverData, clientData))
@@ -350,13 +349,13 @@ namespace Jotunn.Utils
         /// <returns></returns>
         private static string CreateErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
         {
-            string dataLayoutErrMsg = CreateModModuleLayoutErrorMessage(serverData, clientData);
-            if (!string.IsNullOrEmpty(dataLayoutErrMsg))
-            {
-                return CreateVanillaVersionErrorMessage(serverData, clientData) +
-                       dataLayoutErrMsg +
-                       CreateFurtherStepsMessage();
-            }
+            //string dataLayoutErrMsg = CreateModModuleLayoutErrorMessage(serverData, clientData);
+            //if (!string.IsNullOrEmpty(dataLayoutErrMsg))
+            //{
+            //    return CreateVanillaVersionErrorMessage(serverData, clientData) +
+            //           dataLayoutErrMsg +
+            //           CreateFurtherStepsMessage();
+            //}
 
             return CreateVanillaVersionErrorMessage(serverData, clientData) +
                    CreateNotInstalledErrorMessage(serverData, clientData) +
