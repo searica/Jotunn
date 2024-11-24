@@ -26,6 +26,14 @@ namespace Jotunn.Utils
 
         public int ModModuleDataLayout { get; private set; }
 
+        public bool IsLegacyDataLayout
+        {
+            get
+            {
+                return ModModuleDataLayout == ModModule.LegacyDataLayoutVersion;
+            }
+        }
+
 
         /// <summary>
         ///     Whether all the ModModule instances were formatted in a supported 
