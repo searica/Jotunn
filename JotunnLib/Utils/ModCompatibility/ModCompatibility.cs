@@ -217,13 +217,6 @@ namespace Jotunn.Utils
                 return true;
             }
 
-            // Check for compatible ModModule data layout versions
-            //if (serverData.ModModuleDataLayout != clientData.ModModuleDataLayout)
-            //{
-            //    Logger.LogWarning("Jotunn versions on server and client are not compatible.");
-            //    return false;
-            //}
-
             bool result = true;
 
             // Check for supported ModModule data layout
@@ -349,14 +342,6 @@ namespace Jotunn.Utils
         /// <returns></returns>
         private static string CreateErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
         {
-            //string dataLayoutErrMsg = CreateModModuleLayoutErrorMessage(serverData, clientData);
-            //if (!string.IsNullOrEmpty(dataLayoutErrMsg))
-            //{
-            //    return CreateVanillaVersionErrorMessage(serverData, clientData) +
-            //           dataLayoutErrMsg +
-            //           CreateFurtherStepsMessage();
-            //}
-
             return CreateVanillaVersionErrorMessage(serverData, clientData) +
                    CreateNotInstalledErrorMessage(serverData, clientData) +
                    CreateLowerVersionErrorMessage(serverData, clientData) +
