@@ -230,14 +230,19 @@ namespace Jotunn.Utils
             return sb.ToString();
         }
 
-        public ModModule FindModule(string modID)
+        public ModModule FindModule(ModModule modModule)
         {
-            return Modules.FirstOrDefault(x => x.ModID == modID);
+            if (this.IsLegacyDataLayout)
+            {
+                return Modules.FirstOrDefault(x => x.ModName == modModule.ModName);
+            }
+            return Modules.FirstOrDefault(x => x.ModID == modModule.ModID);
+
         }
 
-        public bool HasModule(string modID)
+        public bool HasModule(ModModule modModule)
         {
-            return FindModule(modID) != null;
+            return FindModule(modModule) != null;
         }
 
         private static string GetVersionString()
