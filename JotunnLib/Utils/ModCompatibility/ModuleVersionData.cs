@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,6 +24,20 @@ namespace Jotunn.Utils
 
         public uint NetworkVersion { get; internal set; }
 
+        public int ModModuleDataLayout { get; private set; }
+
+        /// <summary>
+        ///     Whether all the ModModule instances were formatted in a supported 
+        ///     data layout and all instances had the same data layout. 
+        /// </summary>
+        public bool IsSupportedDataLayout
+        {
+            get
+            {
+                return ModModule.SupportedDataLayouts.Contains(ModModuleDataLayout);
+            }
+        }
+
         /// <summary>
         ///     Create from module data
         /// </summary>
@@ -34,6 +48,7 @@ namespace Jotunn.Utils
             VersionString = GetVersionString();
             NetworkVersion = GameVersions.NetworkVersion;
             Modules = new List<ModModule>(versionData);
+            ModModuleDataLayout = GetModModuleDataLayoutVersion(Modules);
         }
 
         internal ModuleVersionData(System.Version valheimVersion, List<ModModule> versionData)
@@ -42,6 +57,7 @@ namespace Jotunn.Utils
             VersionString = GetVersionString();
             NetworkVersion = GameVersions.NetworkVersion;
             Modules = new List<ModModule>(versionData);
+            ModModuleDataLayout = GetModModuleDataLayoutVersion(Modules);
         }
 
         /// <summary>
@@ -56,12 +72,12 @@ namespace Jotunn.Utils
                 pkg.SetPos(0);
                 ValheimVersion = new System.Version(pkg.ReadInt(), pkg.ReadInt(), pkg.ReadInt());
 
-                var numberOfModules = pkg.ReadInt();
-
-                while (numberOfModules > 0)
+                // Read encoded ModModules in legacy format
+                var numberOfLegacyModules = pkg.ReadInt();
+                while (numberOfLegacyModules > 0)
                 {
-                    Modules.Add(new ModModule(pkg));
-                    numberOfModules--;
+                    Modules.Add(new ModModule(pkg, legacy: true));
+                    numberOfLegacyModules--;
                 }
 
                 if (pkg.m_reader.BaseStream.Position != pkg.m_reader.BaseStream.Length)
@@ -73,6 +89,40 @@ namespace Jotunn.Utils
                 {
                     NetworkVersion = pkg.ReadUInt();
                 }
+
+                // Get current data layout ModModules if present
+                if (pkg.m_reader.BaseStream.Position != pkg.m_reader.BaseStream.Length)
+                {
+                    var modModules = new List<ModModule>();
+
+                    // Read and store the relevant ModModules
+                    var numberOfModules = pkg.ReadInt();
+                    var currentPos = pkg.GetPos();
+
+                    while (numberOfModules > 0)
+                    {
+                        try
+                        {
+                            var modModule = new ModModule(pkg, legacy: false);
+                            modModules.Add(modModule);
+                            numberOfModules--;
+                        }
+                        catch (NotSupportedException ex)
+                        {
+                            pkg.SetPos(currentPos);  // get data layout version
+                            this.ModModuleDataLayout = pkg.ReadInt(); 
+                            Logger.LogError($"Could not parse unsupported data layout version {ModModuleDataLayout} from zPackage");
+                            Logger.LogError(ex.Message);
+
+                            // abort reading as the start of the next ModModule is unknown
+                            break;
+                        }
+                    }
+
+                    // overwrite Modules to replace legacy ModModule formatted data with current ModModule formatted data
+                    Modules = modModules;
+                    ModModuleDataLayout = GetModModuleDataLayoutVersion(Modules);
+                }               
             }
             catch (Exception ex)
             {
@@ -96,11 +146,17 @@ namespace Jotunn.Utils
 
             foreach (var module in Modules)
             {
-                module.WriteToPackage(pkg);
+                module.WriteToPackage(pkg, legacy: true);
             }
 
             pkg.Write(VersionString);
             pkg.Write(NetworkVersion);
+
+            pkg.Write(Modules.Count);
+            foreach (var module in Modules)
+            {
+                module.WriteToPackage(pkg, legacy: false);
+            }
 
             return pkg;
         }
@@ -130,7 +186,7 @@ namespace Jotunn.Utils
 
             foreach (var mod in Modules)
             {
-                sb.AppendLine($"{mod.name} {mod.GetVersionString()} {mod.compatibilityLevel} {mod.versionStrictness}");
+                sb.AppendLine($"{mod.ModName} {mod.GetVersionString()} {mod.CompatibilityLevel} {mod.VersionStrictness}");
             }
 
             return sb.ToString();
@@ -159,26 +215,41 @@ namespace Jotunn.Utils
 
             foreach (var mod in Modules)
             {
-                sb.AppendLine($"{mod.name} {mod.GetVersionString()}" + (showEnforce ? $" {mod.compatibilityLevel} {mod.versionStrictness}" : ""));
+                sb.AppendLine($"{mod.ModName} {mod.GetVersionString()}" + (showEnforce ? $" {mod.CompatibilityLevel} {mod.VersionStrictness}" : ""));
             }
 
             return sb.ToString();
         }
 
-        public ModModule FindModule(string name)
+        public ModModule FindModule(ModModule modModule, bool legacyDataLayout)
         {
-            return Modules.FirstOrDefault(x => x.name == name);
+            if (legacyDataLayout)
+            {
+                return Modules.FirstOrDefault(x => x.ModName == modModule.ModName);
+            }
+
+            return Modules.FirstOrDefault(x => x.ModID == modModule.ModID);
         }
 
-        public bool HasModule(string name)
+        public bool HasModule(ModModule modModule, bool legacyDataLayout)
         {
-            return FindModule(name) != null;
+            return FindModule(modModule, legacyDataLayout) != null;
         }
 
         private static string GetVersionString()
         {
             // ServerCharacters replaces the version string on the server but not client and does it's own checks afterwards
             return Version.GetVersionString().Replace("-ServerCharacters", "");
+        }
+
+        private static int GetModModuleDataLayoutVersion(List<ModModule> modules)
+        {
+            // Handle tracking ModModule data layouts 
+            if (modules.Any(x => x.DataLayoutVersion != modules.FirstOrDefault().DataLayoutVersion))
+            {
+                throw new NotSupportedException("DataVersionLayout is not the same for all ModModule instances.");
+            }
+            return modules.FirstOrDefault().DataLayoutVersion;
         }
     }
 }

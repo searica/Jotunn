@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
+using BepInEx;
+using BepInEx.Bootstrap;
 using HarmonyLib;
+using Jotunn.Extensions;
 using Jotunn.Managers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,7 +21,7 @@ namespace Jotunn.Utils
         /// <summary>
         ///     Stores the last server message.
         /// </summary>
-        private static ZPackage LastServerVersion;
+        private static ServerVersionData LastServerVersionData = new ServerVersionData();
 
         private static readonly Dictionary<string, ZPackage> ClientVersions = new Dictionary<string, ZPackage>();
 
@@ -30,11 +31,56 @@ namespace Jotunn.Utils
             Main.Harmony.PatchAll(typeof(ModCompatibility));
         }
 
+        /// <summary>
+        ///     Check if a mod is installed and loaded on the server.<br/>
+        ///     Can be called from both client and server.
+        /// </summary>
+        /// <param name="plugin">BepInEx mod to check</param>
+        /// <returns>true if the mod is loaded on the server.<br/>false if the mod is not loaded on the server or no server connection is established</returns>
+        public static bool IsModuleOnServer(BaseUnityPlugin plugin)
+        {
+            return IsModuleOnServer(plugin.Info.Metadata.GUID);
+        }
+
+        /// <summary>
+        ///     Check if a mod is installed and loaded on the server.<br/>
+        ///     Can be called from both client and server.
+        /// </summary>
+        /// <param name="modGUID">BepInEx mod GUID to check</param>
+        /// <returns>true if the mod is loaded on the server.<br/>false if the mod is not loaded on the server or no server connection is established</returns>
+        public static bool IsModuleOnServer(string modGUID)
+        {
+            if (ZNet.instance)
+            {
+                if (ZNet.instance.IsClientInstance())
+                {
+                    return LastServerVersionData.IsValid() && LastServerVersionData.moduleGUIDs.Contains(modGUID);
+                }
+
+                if (ZNet.instance.IsServer())
+                {
+                    return Chainloader.PluginInfos.ContainsKey(modGUID);
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Check if Jotunn is installed and loaded on the server.<br/>
+        ///     Can be called from both client and server.
+        /// </summary>
+        /// <returns>true if Jotunn is loaded on the server.<br/>false if Jotunn is not loaded on the server or no server connection is established</returns>
+        public static bool IsJotunnOnServer()
+        {
+            return IsModuleOnServer(Main.ModGuid);
+        }
+
         [HarmonyPatch(typeof(ZNet), nameof(ZNet.OnNewConnection)), HarmonyPrefix, HarmonyPriority(Priority.First)]
         private static void ZNet_OnNewConnection(ZNet __instance, ZNetPeer peer)
         {
             // clear the previous connection, if existing
-            LastServerVersion = null;
+            LastServerVersionData.Reset();
 
             // Register our RPC very early
             peer.m_rpc.Register<ZPackage>(nameof(RPC_Jotunn_ReceiveVersionData), RPC_Jotunn_ReceiveVersionData);
@@ -58,7 +104,7 @@ namespace Jotunn.Utils
         [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.ShowConnectError)), HarmonyPostfix, HarmonyPriority(Priority.Last)]
         private static void FejdStartup_ShowConnectError(FejdStartup __instance)
         {
-            if (LastServerVersion != null && ZNet.m_connectionStatus == ZNet.ConnectionStatus.ErrorVersion)
+            if (LastServerVersionData.IsValid() && ZNet.m_connectionStatus == ZNet.ConnectionStatus.ErrorVersion)
             {
                 string failedConnectionText = __instance.m_connectionFailedError.text;
                 __instance.StartCoroutine(ShowModCompatibilityErrorMessage(failedConnectionText));
@@ -73,13 +119,13 @@ namespace Jotunn.Utils
             if (ZNet.instance.IsClientInstance())
             {
                 // If there was no server version response, Jötunn is not installed. Cancel if we have mandatory mods
-                if (LastServerVersion == null && GetEnforcableMods().Any(x => x.IsNeededOnServer()))
+                if (!LastServerVersionData.IsValid() && GetEnforcableMods().Any(x => x.IsNeededOnServer()))
                 {
-                    string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnServer()).Select(x => x.name));
+                    string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnServer()).Select(x => x.ModName));
                     Logger.LogWarning("Jötunn is not installed on the server. Client has mandatory mods, cancelling connection. " +
                                       "Mods that need to be installed on the server:" + Environment.NewLine + missingMods);
                     rpc.Invoke("Disconnect");
-                    LastServerVersion = new ModuleVersionData(new List<ModModule>()).ToZPackage();
+                    LastServerVersionData = new ServerVersionData(new List<ModModule>());
                     ZNet.m_connectionStatus = ZNet.ConnectionStatus.ErrorVersion;
                     return false;
                 }
@@ -103,7 +149,7 @@ namespace Jotunn.Utils
                         // There is a mod, which needs to be client side too
                         // Lets disconnect the vanilla client with Incompatible Version message
 
-                        string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnClient()).Select(x => x.name));
+                        string missingMods = string.Join(Environment.NewLine, GetEnforcableMods().Where(x => x.IsNeededOnClient()).Select(x => x.ModName));
                         Logger.LogWarning("Jötunn is not installed on the client. Server has mandatory mods, cancelling connection. " +
                                           "Mods that need to be installed on the client:" + Environment.NewLine + missingMods);
                         rpc.Invoke("Error", (int)ZNet.ConnectionStatus.ErrorVersion);
@@ -154,10 +200,16 @@ namespace Jotunn.Utils
             }
             else
             {
-                LastServerVersion = data;
+                LastServerVersionData = new ServerVersionData(data);
             }
         }
-
+        
+        /// <summary>
+        ///     Compares version data on server and client.
+        /// </summary>
+        /// <param name="serverData"></param>
+        /// <param name="clientData"></param>
+        /// <returns></returns>
         internal static bool CompareVersionData(ModuleVersionData serverData, ModuleVersionData clientData)
         {
             if (ReferenceEquals(serverData, clientData))
@@ -167,25 +219,39 @@ namespace Jotunn.Utils
 
             bool result = true;
 
+            // Check for supported ModModule data layout
+            if (!clientData.IsSupportedDataLayout)
+            {
+                Logger.LogWarning($"Jotunn version on client is higher than server version: {Main.Version}");
+                result = false;
+            }
+            if (!serverData.IsSupportedDataLayout)
+            {
+                Logger.LogWarning($"Jotunn version on server is higher than client version: {Main.Version}");
+                result = false;
+            }
+
             // Check server enforced mods
             foreach (var serverModule in FindNotInstalledMods(serverData, clientData))
             {
-                Logger.LogWarning($"Missing mod on client: {serverModule.name}");
+                Logger.LogWarning($"Missing mod on client: {serverModule.ModName}");
                 result = false;
             }
 
             // Check client enforced mods
             foreach (var clientModule in FindAdditionalMods(serverData, clientData))
             {
-                Logger.LogWarning($"Client loaded additional mod: {clientModule.name}");
+                Logger.LogWarning($"Client loaded additional mod: {clientModule.ModName}");
                 result = false;
             }
+
+            bool legacyDataLayout = Mathf.Min(serverData.ModModuleDataLayout, clientData.ModModuleDataLayout) == ModModule.LegacyDataLayoutVersion;
 
             // Check versions
             foreach (var serverModule in FindLowerVersionMods(serverData, clientData).Union(FindHigherVersionMods(serverData, clientData)))
             {
-                var clientModule = clientData.FindModule(serverModule.name);
-                Logger.LogWarning($"Mod version mismatch {serverModule.name}: Server {serverModule.version}, Client {clientModule.version}");
+                var clientModule = clientData.FindModule(serverModule, legacyDataLayout);
+                Logger.LogWarning($"Mod version mismatch {serverModule.ModName}: Server {serverModule.Version}, Client {clientModule.Version}");
                 result = false;
             }
 
@@ -230,7 +296,7 @@ namespace Jotunn.Utils
         private static IEnumerator ShowModCompatibilityErrorMessage(string failedConnectionText)
         {
             var compatWindow = LoadCompatWindow();
-            var remote = new ModuleVersionData(LastServerVersion);
+            var remote = LastServerVersionData.moduleVersionData;
             var local = new ModuleVersionData(GetEnforcableMods().ToList());
 
             // print issues to console
@@ -257,7 +323,7 @@ namespace Jotunn.Utils
             compatWindow.scrollRect.verticalNormalizedPosition = 1f;
 
             // Reset the last server version
-            LastServerVersion = null;
+            LastServerVersionData.Reset();
         }
 
         private static void OpenLogFile()
@@ -285,6 +351,28 @@ namespace Jotunn.Utils
                    CreateAdditionalModsErrorMessage(serverData, clientData) +
                    CreateFurtherStepsMessage();
         }
+
+        private static string CreateModModuleLayoutErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
+        {
+
+            if (!clientData.IsSupportedDataLayout)
+            {
+                return ColoredLine(Color.red, $"Jotunn version on client is higher than server version: {Main.Version}");
+            }
+
+            if (!serverData.IsSupportedDataLayout)
+            {
+                return ColoredLine(Color.red, $"Jotunn version on server is higher than client version: {Main.Version}");
+            }
+
+            if (serverData.ModModuleDataLayout != clientData.ModModuleDataLayout)
+            {
+                return ColoredLine(Color.red, "Jotunn versions on server and client are not compatible.");
+            }
+
+            return string.Empty;
+        }
+
 
         private static string CreateVanillaVersionErrorMessage(ModuleVersionData serverData, ModuleVersionData clientData)
         {
@@ -323,7 +411,7 @@ namespace Jotunn.Utils
 
             return ColoredLine(Color.red, "$mod_compat_header_missing_mods") +
                    ColoredLine(GUIManager.Instance.ValheimOrange, $"$mod_compat_missing_mods_description") +
-                   string.Join("", matchingServerMods.Select(serverModule => ColoredLine(Color.white, "$mod_compat_missing_mod", $"{serverModule.name}", $"{serverModule.version}"))) +
+                   string.Join("", matchingServerMods.Select(serverModule => ColoredLine(Color.white, "$mod_compat_missing_mod", $"{serverModule.ModName}", $"{serverModule.Version}"))) +
                    Environment.NewLine;
         }
 
@@ -337,7 +425,7 @@ namespace Jotunn.Utils
             }
 
             return ColoredLine(Color.red, "$mod_compat_header_update_needed") +
-                   string.Join("", matchingServerMods.Select((serverModule) => ColoredLine(Color.white, "$mod_compat_mod_update", serverModule.name, serverModule.GetVersionString()))) +
+                   string.Join("", matchingServerMods.Select((serverModule) => ColoredLine(Color.white, "$mod_compat_mod_update", serverModule.ModName, serverModule.GetVersionString()))) +
                    Environment.NewLine;
         }
 
@@ -351,7 +439,7 @@ namespace Jotunn.Utils
             }
 
             return ColoredLine(Color.red, "$mod_compat_header_downgrade_needed") +
-                   string.Join("", matchingServerMods.Select(serverModule => ColoredLine(Color.white, "$mod_compat_mod_downgrade", serverModule.name, serverModule.GetVersionString()))) +
+                   string.Join("", matchingServerMods.Select(serverModule => ColoredLine(Color.white, "$mod_compat_mod_downgrade", serverModule.ModName, serverModule.GetVersionString()))) +
                    Environment.NewLine;
         }
 
@@ -366,7 +454,7 @@ namespace Jotunn.Utils
 
             return ColoredLine(Color.red, "$mod_compat_header_additional_mods") +
                    ColoredLine(GUIManager.Instance.ValheimOrange, "$mod_compat_additional_mods_description") +
-                   string.Join("", matchingClientMods.Select(clientModule => ColoredLine(Color.white, "$mod_compat_additional_mod", clientModule.name, $"{clientModule.version}"))) +
+                   string.Join("", matchingClientMods.Select(clientModule => ColoredLine(Color.white, "$mod_compat_additional_mod", clientModule.ModName, $"{clientModule.Version}"))) +
                    Environment.NewLine;
         }
 
@@ -397,7 +485,7 @@ namespace Jotunn.Utils
         {
             return FindMods(serverData, clientData, (serverModule, clientModule) =>
             {
-                return clientModule != null && ModModule.IsLowerVersion(serverModule, clientModule, serverModule.versionStrictness);
+                return clientModule != null && ModModule.IsLowerVersion(serverModule, clientModule, serverModule.VersionStrictness);
             }).ToList();
         }
 
@@ -405,15 +493,17 @@ namespace Jotunn.Utils
         {
             return FindMods(serverData, clientData, (serverModule, clientModule) =>
             {
-                return clientModule != null && ModModule.IsLowerVersion(clientModule, serverModule, serverModule.versionStrictness);
+                return clientModule != null && ModModule.IsLowerVersion(clientModule, serverModule, serverModule.VersionStrictness);
             }).ToList();
         }
 
         private static IEnumerable<ModModule> FindMods(ModuleVersionData baseModules, ModuleVersionData additionalModules, Func<ModModule, ModModule, bool> predicate)
         {
+            bool legacyDataLayout = Mathf.Min(baseModules.ModModuleDataLayout, additionalModules.ModModuleDataLayout) == ModModule.LegacyDataLayoutVersion;
+
             foreach (ModModule baseModule in baseModules.Modules)
             {
-                ModModule additionalModule = additionalModules.FindModule(baseModule.name);
+                ModModule additionalModule = additionalModules.FindModule(baseModule, legacyDataLayout);
 
                 if (predicate(baseModule, additionalModule))
                 {
@@ -430,10 +520,7 @@ namespace Jotunn.Utils
         {
             foreach (var plugin in BepInExUtils.GetDependentPlugins(true).OrderBy(x => x.Key))
             {
-                var networkCompatibilityAttribute = plugin.Value.GetType()
-                    .GetCustomAttributes(typeof(NetworkCompatibilityAttribute), true)
-                    .Cast<NetworkCompatibilityAttribute>()
-                    .FirstOrDefault();
+                var networkCompatibilityAttribute = plugin.Value.GetNetworkCompatibilityAttribute();
 
                 if (networkCompatibilityAttribute != null)
                 {

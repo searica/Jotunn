@@ -7,6 +7,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using Jotunn.Entities;
+using Jotunn.Extensions;
 using Jotunn.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -464,6 +465,10 @@ namespace Jotunn.Managers
             OnAdminStatusChanged?.SafeInvoke();
         }
 
+        /// <summary>
+        ///     Gets an IEnumerable of all default and custom config files that associated with plugins that have Jotunn as a dependency.
+        /// </summary>
+        /// <returns></returns>
         private IEnumerable<ConfigFile> GetConfigFiles()
         {
             var loadedPlugins = BepInExUtils.GetDependentPlugins(true);
@@ -479,11 +484,71 @@ namespace Jotunn.Managers
             }
         }
 
+        /// <summary>
+        ///     Checks if AdminOnly config entries should be locked based the AdminOnlyStrictness value for the plugin that the
+        ///     config file is attached to (including custom config files) and whether the plugin is installed on the server or not.
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        private bool ShouldManageConfig(ConfigFile config)
+        {
+            if (!GetPluginGUID(config, out var pluginGUID))
+            {
+                return false;
+            }
+
+            if (!BepInExUtils.GetDependentPlugins().TryGetValue(pluginGUID, out var plugin))
+            {
+                return false;
+            }
+
+            return ShouldManageConfig(plugin);
+        }
+
+        /// <summary>
+        ///     Checks if AdminOnly config entries should be locked based the AdminOnlyStrictness value for the plugin
+        ///     and whether the plugin is installed on the server or not.
+        /// </summary>
+        /// <param name="plugin"></param>
+        /// <returns></returns>
+        private bool ShouldManageConfig(BaseUnityPlugin plugin)
+        {
+            if (ModCompatibility.IsModuleOnServer(plugin))
+            {
+                return true;
+            }
+
+            // Current behaviour is that AdminOnly config entries are always locked
+            // if Jotunn is not on the server. So if SynchronizationModeAttribute has
+            // not been set for the mod then return true to mimic current behaviour and 
+            // maintain backwards compatibility.
+            SynchronizationModeAttribute syncMode = plugin.GetSynchronizationModeAttribute();
+            return syncMode == null || syncMode.ShouldAlwaysEnforceAdminOnly();
+        }
+
         private static string GetFileIdentifier(ConfigFile config)
         {
             return config.ConfigFilePath.Replace(BepInEx.Paths.ConfigPath, "").Replace("\\", "/").Trim('/');
         }
 
+        /// <summary>
+        ///     Gets the corresponding Plugin GUID for a config file (works for custom config files) 
+        ///     and returns a boolean indicating success or failure.
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="pluginGUID"></param>
+        private bool GetPluginGUID(ConfigFile config, out string pluginGUID)
+        {
+            var configFileIdentifier = GetFileIdentifier(config);
+            return GetPluginGUID(configFileIdentifier, out pluginGUID);
+        }
+
+        /// <summary>
+        ///     Gets the corresponding Plugin GUID for a config file identifier (works for custom config files) 
+        ///     and returns a boolean indicating success or failure.
+        /// </summary>
+        /// <param name="configFileIdentifier"></param>
+        /// <param name="pluginGUID"></param>
         private bool GetPluginGUID(string configFileIdentifier, out string pluginGUID)
         {
             if (IsDefaultModConfig(configFileIdentifier, out pluginGUID))
@@ -556,6 +621,11 @@ namespace Jotunn.Managers
         {
             foreach (var config in GetConfigFiles())
             {
+                if (!ShouldManageConfig(config))
+                {
+                    continue;
+                }
+
                 foreach (var configDefinition in config.Keys)
                 {
                     var configEntry = config[configDefinition.Section, configDefinition.Key];
@@ -808,6 +878,11 @@ namespace Jotunn.Managers
         {
             foreach (var config in GetConfigFiles())
             {
+                if (!ShouldManageConfig(config))
+                {
+                    continue;
+                }
+
                 foreach (var configDefinition in config.Keys)
                 {
                     var configEntry = config[configDefinition.Section, configDefinition.Key];

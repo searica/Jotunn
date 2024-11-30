@@ -17,17 +17,18 @@ namespace Jotunn.Utils
         [Fact]
         public void ModModuleZPackage()
         {
-            ModModule module = new ModModule("TestMod", v_1_0_5, CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor);
+            ModModule module = new ModModule("TestMod", "TestMod", v_1_0_5, CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor);
 
             ZPackage pkg = new ZPackage();
-            module.WriteToPackage(pkg);
+            module.WriteToPackage(pkg, legacy: false);
             pkg.SetPos(0);
-            ModModule result = new ModModule(pkg);
+            ModModule result = new ModModule(pkg, legacy: false);
 
-            Assert.Equal(module.name, result.name);
-            Assert.Equal(module.version, result.version);
-            Assert.Equal(module.compatibilityLevel, result.compatibilityLevel);
-            Assert.Equal(module.versionStrictness, result.versionStrictness);
+            Assert.Equal(module.ModID, result.ModID);
+            Assert.Equal(module.ModName, result.ModName);
+            Assert.Equal(module.Version, result.Version);
+            Assert.Equal(module.CompatibilityLevel, result.CompatibilityLevel);
+            Assert.Equal(module.VersionStrictness, result.VersionStrictness);
         }
 
         [Fact]
@@ -35,7 +36,7 @@ namespace Jotunn.Utils
         {
             moduleData.ValheimVersion = v_1_0_5;
             moduleData.VersionString = "1.2.3-Test";
-            moduleData.Modules = new List<ModModule> { new ModModule("TestMod", v_1_0_5, CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor) };
+            moduleData.Modules = new List<ModModule> { new ModModule("TestMod", "TestMod", v_1_0_5, CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor) };
 
             ZPackage pkg = moduleData.ToZPackage();
             pkg.SetPos(0);
@@ -52,7 +53,7 @@ namespace Jotunn.Utils
         {
             moduleData.ValheimVersion = v_1_0_5;
             moduleData.VersionString = "1.2.3-Test";
-            moduleData.Modules = new List<ModModule> { new ModModule("TestMod", v_1_0_5, CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor) };
+            moduleData.Modules = new List<ModModule> { new ModModule("TestMod", "TestMod", v_1_0_5, CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor) };
 
             var pkg = new ZPackage();
             pkg.Write(moduleData.ValheimVersion.Major);
@@ -63,7 +64,7 @@ namespace Jotunn.Utils
 
             foreach (var module in moduleData.Modules)
             {
-                module.WriteToPackage(pkg);
+                module.WriteToPackage(pkg, legacy: true);
             }
 
             pkg.SetPos(0);
