@@ -14,27 +14,33 @@ namespace Jotunn.Utils
         /// </summary>
         [Obsolete("Use NotEnforced instead")]
         NoNeedForSync = 0,
+
         /// <summary>
         ///     Mod is checked only if the client and server have loaded it and ignores if just one side has it.
         /// </summary>
         [Obsolete("Use VersionCheckOnly")]
         OnlySyncWhenInstalled = 1,
+
         /// <summary>
         ///     Mod must be loaded on server and client. Version checking depends on the VersionStrictness.
         /// </summary>
         EveryoneMustHaveMod = 2,
+
         /// <summary>
         ///     If mod is installed on the server, every client has to have it. VersionStrictness does apply when both sides have it.
         /// </summary>
         ClientMustHaveMod = 3,
+
         /// <summary>
         ///     If mod is installed on the client, the server has to have it. VersionStrictness does apply when both sides have it.
         /// </summary>
         ServerMustHaveMod = 4,
+
         /// <summary>
         ///     Version check is performed when both server and client have the mod, no check if the mod is actually installed.
         /// </summary>
         VersionCheckOnly = 5,
+
         /// <summary>
         ///     Mod is not checked at all, VersionsStrictness does not apply.
         /// </summary>
@@ -51,14 +57,17 @@ namespace Jotunn.Utils
         ///     No version check is done
         /// </summary>
         None = 0,
+
         /// <summary>
         ///     Mod must have the same Major version
         /// </summary>
         Major = 1,
+
         /// <summary>
         ///     Mods must have the same Minor version
         /// </summary>
         Minor = 2,
+
         /// <summary>
         ///     Mods must have the same Patch version
         /// </summary>
@@ -66,16 +75,14 @@ namespace Jotunn.Utils
     }
 
     /// <summary>
-    /// Mod compatibility attribute<br />
-    /// <br/>
-    /// PLEASE READ<br />
-    /// Example usage:<br />
-    /// If your mod adds its own RPCs, EnforceModOnClients is likely a must (otherwise clients would just discard the messages from the server), same version you do have to determine, if your sent data changed<br />
-    /// If your mod adds items, you always should enforce mods on client and same version (there could be nasty side effects with different versions of an item)<br />
-    /// If your mod is just GUI changes (for example bigger inventory, additional equip slots) there is no need to set this attribute
+    ///     Mod compatibility attribute<br />
+    ///     <br/>
+    ///     If your mod adds its own RPCs, EnforceModOnClients is likely a must (otherwise clients would just discard the messages from the server), same version you do have to determine, if your sent data changed.<br />
+    ///     If your mod adds items, you always should enforce mods on client and same version (there could be nasty side effects with different versions of an item).<br />
+    ///     If your mod is just GUI changes (for example bigger inventory, additional equip slots) there is no need to set this attribute
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Assembly)]
-    public class NetworkCompatibilityAttribute: Attribute
+    public class NetworkCompatibilityAttribute : Attribute
     {
         /// <summary>
         ///     Compatibility Level

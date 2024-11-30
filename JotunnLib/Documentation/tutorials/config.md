@@ -67,6 +67,23 @@ Local settings will be overriden by the servers values as long as the client is 
 
 Changing the configs at runtime will sync the changes to all clients connected to the server.
 
+## Admin Only Strictness
+
+Usually, the `IsAdminOnly` flag is enforcing players to be admin on the server to change the configuration.
+However, without having Jotunn installed on the server the admin status cannot be detected reliably.
+
+To change this behaviour, the `SynchronizationMode` can be set to `AdminOnlyStrictness.IfOnServer`.
+This means `IsAdminOnly` configs are only synced and enforced if the server has Jotunn installed.
+If not installed on the server, all players are free to change any config values.
+This can useful for mods that want to behave like client-only mods on vanilla servers but still sync configs on modded servers.
+```cs
+[SynchronizationMode(AdminOnlyStrictness.IfOnServer)]
+internal class TestMod : BaseUnityPlugin
+{
+...
+}
+```
+
 ## Synced admin status
 
 Upon connection to a server, Jötunn checks the admin status of the connecting player on that server, given that Jötunn is installed on both sides.
