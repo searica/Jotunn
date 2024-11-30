@@ -245,10 +245,12 @@ namespace Jotunn.Utils
                 result = false;
             }
 
+            bool legacyDataLayout = Mathf.Min(serverData.ModModuleDataLayout, clientData.ModModuleDataLayout) == ModModule.LegacyDataLayoutVersion;
+
             // Check versions
             foreach (var serverModule in FindLowerVersionMods(serverData, clientData).Union(FindHigherVersionMods(serverData, clientData)))
             {
-                var clientModule = clientData.FindModule(serverModule);
+                var clientModule = clientData.FindModule(serverModule, legacyDataLayout);
                 Logger.LogWarning($"Mod version mismatch {serverModule.ModName}: Server {serverModule.Version}, Client {clientModule.Version}");
                 result = false;
             }
@@ -497,9 +499,11 @@ namespace Jotunn.Utils
 
         private static IEnumerable<ModModule> FindMods(ModuleVersionData baseModules, ModuleVersionData additionalModules, Func<ModModule, ModModule, bool> predicate)
         {
+            bool legacyDataLayout = Mathf.Min(baseModules.ModModuleDataLayout, additionalModules.ModModuleDataLayout) == ModModule.LegacyDataLayoutVersion;
+
             foreach (ModModule baseModule in baseModules.Modules)
             {
-                ModModule additionalModule = additionalModules.FindModule(baseModule);
+                ModModule additionalModule = additionalModules.FindModule(baseModule, legacyDataLayout);
 
                 if (predicate(baseModule, additionalModule))
                 {

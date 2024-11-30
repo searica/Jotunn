@@ -27,7 +27,7 @@ namespace Jotunn.Utils
             get
             {
                 return DataLayoutVersion == LegacyDataLayoutVersion ? ModName : guid;
-            }   
+            }
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Jotunn.Utils
                 VersionStrictness = (VersionStrictness)pkg.ReadInt();
                 return;
             }
-        
+
             // Handle deserialization based on dataLayoutVersion
             DataLayoutVersion = pkg.ReadInt();
 
@@ -105,7 +105,7 @@ namespace Jotunn.Utils
                 Version = build >= 0 ? new System.Version(major, minor, build) : new System.Version(major, minor);
                 CompatibilityLevel = (CompatibilityLevel)pkg.ReadInt();
                 VersionStrictness = (VersionStrictness)pkg.ReadInt();
-            }            
+            }
         }
 
         /// <summary>

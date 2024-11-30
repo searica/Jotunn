@@ -26,15 +26,6 @@ namespace Jotunn.Utils
 
         public int ModModuleDataLayout { get; private set; }
 
-        public bool IsLegacyDataLayout
-        {
-            get
-            {
-                return ModModuleDataLayout == ModModule.LegacyDataLayoutVersion;
-            }
-        }
-
-
         /// <summary>
         ///     Whether all the ModModule instances were formatted in a supported 
         ///     data layout and all instances had the same data layout. 
@@ -230,19 +221,19 @@ namespace Jotunn.Utils
             return sb.ToString();
         }
 
-        public ModModule FindModule(ModModule modModule)
+        public ModModule FindModule(ModModule modModule, bool legacyDataLayout)
         {
-            if (this.IsLegacyDataLayout)
+            if (legacyDataLayout)
             {
                 return Modules.FirstOrDefault(x => x.ModName == modModule.ModName);
             }
-            return Modules.FirstOrDefault(x => x.ModID == modModule.ModID);
 
+            return Modules.FirstOrDefault(x => x.ModID == modModule.ModID);
         }
 
-        public bool HasModule(ModModule modModule)
+        public bool HasModule(ModModule modModule, bool legacyDataLayout)
         {
-            return FindModule(modModule) != null;
+            return FindModule(modModule, legacyDataLayout) != null;
         }
 
         private static string GetVersionString()
