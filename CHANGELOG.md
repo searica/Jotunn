@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 2.22.0
+* Added `SynchronizationMode` attribute to allow mod authors to change how AdminOnly configs are handled. See https://valheim-modding.github.io/Jotunn/tutorials/config.html#admin-only-strictness (thx Searica)
+* Fixed mod detection for connection compatibility now use guid instead of name (thx Searica)
+* Fixed a conflict with mods that use `__state` in a ZNetScene/ObjectDB patch while the ModQuery is active
+
 ## Version 2.21.3
 * Fixed category tabs refreshed every frame, causing saplings to spin in the cultivator
 
