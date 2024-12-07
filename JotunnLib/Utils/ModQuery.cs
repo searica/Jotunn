@@ -18,6 +18,7 @@ namespace Jotunn.Utils
     {
         private static readonly Dictionary<string, Dictionary<int, ModPrefab>> Prefabs = new Dictionary<string, Dictionary<int, ModPrefab>>();
         private static readonly Dictionary<string, List<Recipe>> Recipes = new Dictionary<string, List<Recipe>>();
+        private static Tuple<ZNetSceneState, ObjectDBState> state;
 
         private static readonly HashSet<MethodInfo> PatchedMethods = new HashSet<MethodInfo>();
         private static readonly HarmonyMethod PrePatch = new HarmonyMethod(AccessTools.Method(typeof(ModQuery), nameof(BeforePatch)));
@@ -172,21 +173,21 @@ namespace Jotunn.Utils
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError($"Failed to patch {patch.PatchMethod} from {patch.owner}: {e}");
+                    Logger.LogWarning($"Failed to patch {patch.PatchMethod} from {patch.owner}");
                 }
             }
         }
 
-        private static void BeforePatch(object[] __args, ref Tuple<ZNetSceneState, ObjectDBState> __state)
+        private static void BeforePatch(object[] __args)
         {
             ObjectDB objectDB = GetObjectDB(__args);
             ZNetScene zNetScene = GetZNetScene(__args);
-            __state = new Tuple<ZNetSceneState, ObjectDBState>(new ZNetSceneState(zNetScene), new ObjectDBState(objectDB));
+            state = new Tuple<ZNetSceneState, ObjectDBState>(new ZNetSceneState(zNetScene), new ObjectDBState(objectDB));
         }
 
-        private static void AfterPatch(object[] __args, ref Tuple<ZNetSceneState, ObjectDBState> __state)
+        private static void AfterPatch(object[] __args)
         {
-            if (!__state.Item1.valid && !__state.Item2.valid)
+            if (state == null || !state.Item1.valid && !state.Item2.valid)
             {
                 return;
             }
@@ -198,8 +199,8 @@ namespace Jotunn.Utils
                 return;
             }
 
-            __state.Item1.AddNewPrefabs(GetZNetScene(__args), plugin);
-            __state.Item2.AddNewPrefabs(GetObjectDB(__args), plugin);
+            state.Item1.AddNewPrefabs(GetZNetScene(__args), plugin);
+            state.Item2.AddNewPrefabs(GetObjectDB(__args), plugin);
         }
 
         private static void AddPrefabs(IEnumerable<GameObject> before, IEnumerable<GameObject> after, BepInPlugin plugin)
