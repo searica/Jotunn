@@ -12,6 +12,7 @@ namespace Jotunn.Extensions
     {
         internal static string GetExtendedDescription(string description, bool synchronizedSetting)
         {
+            // these two hardcoded strings should probably be localized
             return description + (synchronizedSetting ? " [Synced with Server]" : " [Not Synced with Server]");
         }
 
