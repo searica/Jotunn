@@ -24,7 +24,7 @@ namespace Jotunn.Extensions
         /// <param name="name">Display name of the config entry.</param>
         /// <param name="value">Default value of the config entry.</param>
         /// <param name="description">Plain text description of the config entry to display as hover text in configuration manager.</param>
-        /// <param name="acceptVals">Acceptable values for config entry as either an AcceptableValueRange or AcceptableValueList.</param>
+        /// <param name="acceptVals">Acceptable values for config entry as an AcceptableValueRange, AcceptableValueList, or custom subclass.</param>
         /// <param name="synced">Whether the config entry IsAdminOnly and should be synced with server.</param>
         /// <param name="order">Order of the setting on the settings list relative to other settings in a category. 0 by default, higher number is higher on the list.</param>
         /// <param name="drawer">Custom setting editor (OnGUI code that replaces the default editor provided by ConfigurationManager).</param>
