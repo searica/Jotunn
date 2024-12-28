@@ -9,8 +9,8 @@ namespace Jotunn.Extensions
     /// </summary>
     public static class ConfigFileExtensions
     {
-         private static readonly Dictionary<string, int> _sectionToSectionNumber = [];
-         private static readonly Dictionary<string, int> _sectionToSettingOrder = [];
+         private static readonly Dictionary<string, int> _sectionToSectionNumber = new Dictionary<string, int>();
+         private static readonly Dictionary<string, int> _sectionToSettingOrder = new Dictionary<string, int>();
         
          /// <summary>
          ///     Formats section name as "{sectionNumber} - {section}" based on how
