@@ -3,7 +3,6 @@ using BepInEx.Configuration;
 
 namespace Jotunn.Extensions
 {
-
     /// <summary>
     ///     Extends ConfigFile with a convenience method to bind config entries with less boilerplate code 
     ///     and explicitly expose commonly used configuration manager attributes.
@@ -12,7 +11,6 @@ namespace Jotunn.Extensions
     {
         internal static string GetExtendedDescription(string description, bool synchronizedSetting)
         {
-            // these two hardcoded strings should probably be localized
             return description + (synchronizedSetting ? " [Synced with Server]" : " [Not Synced with Server]");
         }
 
@@ -23,9 +21,9 @@ namespace Jotunn.Extensions
         /// <param name="configFile">Configuration file to bind the config entry to.</param>
         /// <param name="section">Configuration file section to list the config entry in.</param>
         /// <param name="name">Display name of the config entry.</param>
-        /// <param name="value">Default value of the config entry.</param>
+        /// <param name="defaultValue">Default value of the config entry.</param>
         /// <param name="description">Plain text description of the config entry to display as hover text in configuration manager.</param>
-        /// <param name="acceptVals">Acceptable values for config entry as an AcceptableValueRange, AcceptableValueList, or custom subclass.</param>
+        /// <param name="acceptableValues">Acceptable values for config entry as an AcceptableValueRange, AcceptableValueList, or custom subclass.</param>
         /// <param name="synced">Whether the config entry IsAdminOnly and should be synced with server.</param>
         /// <param name="order">Order of the setting on the settings list relative to other settings in a category. 0 by default, higher number is higher on the list.</param>
         /// <param name="drawer">Custom setting editor (OnGUI code that replaces the default editor provided by ConfigurationManager).</param>
@@ -35,9 +33,9 @@ namespace Jotunn.Extensions
             this ConfigFile configFile,
             string section,
             string name,
-            T value,
+            T defaultValue,
             string description,
-            AcceptableValueBase acceptVals = null,
+            AcceptableValueBase acceptableValues = null,
             bool synced = true,
             int order = 0,
             Action<ConfigEntryBase> drawer = null,
@@ -46,9 +44,10 @@ namespace Jotunn.Extensions
         {
             string extendedDescription = GetExtendedDescription(description, synced);
 
-            configAttributes ??= new ConfigurationManagerAttributes();         
+            configAttributes ??= new ConfigurationManagerAttributes();
             configAttributes.IsAdminOnly = synced;
             configAttributes.Order = order;
+
             if (drawer != null)
             {
                 configAttributes.CustomDrawer = drawer;
@@ -57,14 +56,14 @@ namespace Jotunn.Extensions
             ConfigEntry<T> configEntry = configFile.Bind(
                 section,
                 name,
-                value,
+                defaultValue,
                 new ConfigDescription(
                     extendedDescription,
-                    acceptVals,
+                    acceptableValues,
                     configAttributes
                 )
             );
             return configEntry;
-        }    
+        }
     }
 }
