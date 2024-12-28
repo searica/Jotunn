@@ -10,40 +10,58 @@ namespace Jotunn.Extensions
     /// </summary>
     public static class ConfigFileExtensions
     {
-         private static readonly Dictionary<string, int> _sectionToSectionNumber = new Dictionary<string, int>();
-         private static readonly Dictionary<string, int> _sectionToSettingOrder = new Dictionary<string, int>();
+        internal class ConfigFileOrderingMaps
+        {
+            public Dictionary<string, int> sectionToSectionNumber = new Dictionary<string, int>();
+            public Dictionary<string, int> sectionToSettingOrder = new Dictionary<string, int>();
+        }
+        private static readonly Dictionary<string, ConfigFileOrderingMaps> _configFileOrderingMaps = new Dictionary<string, ConfigFileOrderingMaps>();
         
-         /// <summary>
-         ///     Formats section name as "{sectionNumber} - {section}" based on how
-         ///     many sections have been bound to this config.
-         /// </summary>
-         /// <param name="section"></param>
-         /// <returns></returns>
-         private static string GetOrderedSectionName(string section)
-         {
-             if (!_sectionToSectionNumber.TryGetValue(section, out int number))
-             {
-                 number = _sectionToSectionNumber.Count + 1;
-                 _sectionToSectionNumber[section] = number;
-             }
-             return $"{number} - {section}";
-         }
+        /// <summary>
+        ///     Formats section name as "{sectionNumber} - {section}" based on how
+        ///     many sections have been bound to this config.
+        /// </summary>
+        /// <param name="section"></param>
+        /// <returns></returns>
+        private static string GetOrderedSectionName(this ConfigFile configFile, string section)
+        {
+            if (!_configFileOrderingMaps.TryGetValue(configFile.ConfigFilePath, out ConfigFileOrderingMaps orderingMaps))
+            {
+                orderingMaps = new ConfigFileOrderingMaps();
+                _configFileOrderingMaps.Add(configFile.ConfigFilePath, orderingMaps);
+            }
         
-         /// <summary>
-         ///     Orders settings within a section.
-         /// </summary>
-         /// <param name="section"></param>
-         /// <returns></returns>
-         private static int GetSettingOrder(string section)
-         {
-             if (!_sectionToSettingOrder.TryGetValue(section, out int order))
-             {
-                 order = 0;
-             }
-             _sectionToSettingOrder[section] = order - 1;
-             return order;
-         }
+            if (!orderingMaps.sectionToSectionNumber.TryGetValue(section, out int number))
+            {
+                number = orderingMaps.sectionToSectionNumber.Count + 1;
+                orderingMaps.sectionToSectionNumber[section] = number;
+            }
         
+            return $"{number} - {section}";
+        }
+        
+        /// <summary>
+        ///     Orders settings within a section.
+        /// </summary>
+        /// <param name="section"></param>
+        /// <returns></returns>
+        private static int GetSettingOrder(this ConfigFile configFile, string section)
+        {
+            if (!_configFileOrderingMaps.TryGetValue(configFile.ConfigFilePath, out ConfigFileOrderingMaps orderingMaps))
+            {
+                orderingMaps = new ConfigFileOrderingMaps();
+                _configFileOrderingMaps.Add(configFile.ConfigFilePath, orderingMaps);
+            }
+        
+            if (!orderingMaps.sectionToSettingOrder.TryGetValue(section, out int order))
+            {
+                order = 0;
+            }
+        
+            orderingMaps.sectionToSettingOrder[section] = order - 1;
+            return order;
+        }
+                
         internal static string GetExtendedDescription(string description, bool synchronizedSetting)
         {
             return description + (synchronizedSetting ? " [Synced with Server]" : " [Not Synced with Server]");
@@ -79,8 +97,8 @@ namespace Jotunn.Extensions
             ConfigurationManagerAttributes configAttributes = null
         )
         {
-            section = sectionOrder ? GetOrderedSectionName(section) : section;
-            int order = settingOrder ? GetSettingOrder(section) : 0;
+            section = sectionOrder ? configFile.GetOrderedSectionName(section) : section;
+            int order = settingOrder ? configFile.GetSettingOrder(section) : 0;
             return configFile.BindConfig(section, key, defaultValue, description, synced, order, acceptableValues, customDrawer, configAttributes);
         }
 
