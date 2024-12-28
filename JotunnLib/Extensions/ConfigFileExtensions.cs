@@ -19,26 +19,26 @@ namespace Jotunn.Extensions
         /// </summary>
         /// <typeparam name="T">Type of the value the config entry holds.</typeparam>
         /// <param name="configFile">Configuration file to bind the config entry to.</param>
-        /// <param name="section">Configuration file section to list the config entry in.</param>
-        /// <param name="name">Display name of the config entry.</param>
+        /// <param name="section">Configuration file section to list the config entry in. Settings are grouped by this.</param>
+        /// <param name="key">Name of the setting.</param>
         /// <param name="defaultValue">Default value of the config entry.</param>
         /// <param name="description">Plain text description of the config entry to display as hover text in configuration manager.</param>
-        /// <param name="acceptableValues">Acceptable values for config entry as an AcceptableValueRange, AcceptableValueList, or custom subclass.</param>
         /// <param name="synced">Whether the config entry IsAdminOnly and should be synced with server.</param>
         /// <param name="order">Order of the setting on the settings list relative to other settings in a category. 0 by default, higher number is higher on the list.</param>
-        /// <param name="drawer">Custom setting editor (OnGUI code that replaces the default editor provided by ConfigurationManager).</param>
-        /// <param name="configAttributes">Optional config manager attributes for additional user specified functionality. Any optional fields specified by the arguments of BindConfig will be overwritten by the parameters passed to BindConfig.</param>
+        /// <param name="acceptableValues">Acceptable values for config entry as an AcceptableValueRange, AcceptableValueList, or custom subclass.</param>
+        /// <param name="customDrawer">Custom setting editor (OnGUI code that replaces the default editor provided by ConfigurationManager).</param>
+        /// <param name="configAttributes">Config manager attributes for additional user specified functionality. Any fields of BindConfig will overwrite properties in configAttributes.</param>
         /// <returns>ConfigEntry bound to the config file.</returns>
         public static ConfigEntry<T> BindConfig<T>(
             this ConfigFile configFile,
             string section,
-            string name,
+            string key,
             T defaultValue,
             string description,
-            AcceptableValueBase acceptableValues = null,
             bool synced = true,
-            int order = 0,
-            Action<ConfigEntryBase> drawer = null,
+            int? order = null,
+            AcceptableValueBase acceptableValues = null,
+            Action<ConfigEntryBase> customDrawer = null,
             ConfigurationManagerAttributes configAttributes = null
         )
         {
@@ -47,22 +47,15 @@ namespace Jotunn.Extensions
             configAttributes ??= new ConfigurationManagerAttributes();
             configAttributes.IsAdminOnly = synced;
             configAttributes.Order = order;
-
-            if (drawer != null)
-            {
-                configAttributes.CustomDrawer = drawer;
-            }
+            configAttributes.CustomDrawer = customDrawer;
 
             ConfigEntry<T> configEntry = configFile.Bind(
                 section,
-                name,
+                key,
                 defaultValue,
-                new ConfigDescription(
-                    extendedDescription,
-                    acceptableValues,
-                    configAttributes
-                )
+                new ConfigDescription(extendedDescription, acceptableValues, configAttributes)
             );
+
             return configEntry;
         }
     }
