@@ -64,7 +64,7 @@ namespace Jotunn.Extensions
         /// <param name="customDrawer">Custom setting editor (OnGUI code that replaces the default editor provided by ConfigurationManager).</param>
         /// <param name="configAttributes">Config manager attributes for additional user specified functionality. Any fields of BindConfig will overwrite properties in configAttributes.</param>
         /// <returns>ConfigEntry bound to the config file.</returns>
-        public static ConfigEntry<T> BindConfig<T>(
+        public static ConfigEntryInOrder<T> BindConfig<T>(
             this ConfigFile configFile,
             string section,
             string key,
